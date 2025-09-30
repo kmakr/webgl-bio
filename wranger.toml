@@ -5,3 +5,4 @@ compatibility_date = "2025-10-01"
 [pages]
 project_name = "webgl-bio-web"
 build_output_dir = "."
+pages_build_output_dir = "."
