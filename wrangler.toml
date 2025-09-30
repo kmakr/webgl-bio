@@ -1,6 +1,7 @@
 # wrangler.toml
 name = "webgl-bio-web"
 compatibility_date = "2025-10-01"
+pages_build_output_dir = "."
 
 [pages]
 project_name = "webgl-bio-web"
