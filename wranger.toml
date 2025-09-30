@@ -1,2 +1,6 @@
 # wrangler.toml
 name = 'wild-sun-9904'
+compatibility_date = "2025-10-01"
+
+[assets]
+directory = "."
