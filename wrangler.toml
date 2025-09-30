@@ -1,4 +1,5 @@
-# wrangler.toml
-name = "wild-sun-9904"
-compatibility_date = "2025-10-01"
-pages_build_output_dir = "."
+name = "theo-azriel-site"
+compatibility_date = "2025-08-18"
+
+[assets]
+directory = "."
