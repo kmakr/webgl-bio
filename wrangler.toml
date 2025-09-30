@@ -1,8 +1,8 @@
 # wrangler.toml
-name = "webgl-bio-web"
+name = "theo-webgl"
 compatibility_date = "2025-10-01"
 pages_build_output_dir = "."
 
 [pages]
-project_name = "webgl-bio-web"
+project_name = "theo-webgl"
 build_output_dir = "."
