@@ -1,8 +1,4 @@
 # wrangler.toml
-name = "theo-webgl"
+name = "wild-sun-9904"
 compatibility_date = "2025-10-01"
 pages_build_output_dir = "."
-
-[pages]
-project_name = "theo-webgl"
-build_output_dir = "."
