@@ -201,6 +201,8 @@ async function bootstrap() {
   const quadBuffer = createFullscreenQuadBuffer(gl);
   const panelMetrics = measurePanel(panel);
   panelMetrics.el = panel;
+  panel.style.minWidth = `${panelMetrics.width}px`;
+  panel.style.minHeight = `${panelMetrics.height}px`;
 
   const svgFactory = createSvgFactory({ canvas: gl.canvas, cssText, contentElement: content });
   const [contentImage, selectionImage] = await Promise.all([
@@ -917,6 +919,8 @@ function startAnimationLoop({ gl, panelMetrics, heatmap, selectionRenderer, svgF
     resizeDrawingSurface(gl);
     const bounds = measurePanel(panelMetrics.el);
     Object.assign(panelMetrics, bounds);
+    panelMetrics.el.style.minWidth = `${panelMetrics.width}px`;
+    panelMetrics.el.style.minHeight = `${panelMetrics.height}px`;
     selectionRenderer.handleResize();
     try {
       await selectionRenderer.updateTextures(svgFactory);

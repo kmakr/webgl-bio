@@ -57,6 +57,7 @@ p:last-child {
 
 .panel {
   position: relative;
+  width: 100%;
   max-width: 512px;
   background: #fff;
 }
