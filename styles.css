@@ -1,103 +1,103 @@
 html {
-  height: 100%;
+    height: 100%;
 }
 
 body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  min-height: 100%;
-  margin: 0;
-  background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 100vh;
+    margin: 0;
+    background: #ffffff;
 }
 
 body.no-touch-action {
-  touch-action: none;
+    touch-action: none;
 }
 
 h1 {
-  margin: 0.125em 0;
-  font-size: 100px;
-  line-height: 1.125;
-  text-align: center;
+    margin: 0.125em 0;
+    font-size: 100px;
+    line-height: 1.125;
+    text-align: center;
 }
 
 @media (max-width: 512px) {
-  .content-master.is-narrow h1 {
-    font-size: 100px;
-  }
+    .content-master.is-narrow h1 {
+        font-size: 100px;
+    }
 }
 
 p {
-  margin: 1.25em 2em;
+    margin: 1.25em 2em;
 }
 
 p:last-child {
-  margin-bottom: 4em;
+    margin-bottom: 4em;
 }
 
 .panel {
-  position: relative;
-  max-width: 512px;
-  background: #fff;
+    position: relative;
+    width: 100%;
+    max-width: 512px;
+    background: #fff;
 }
 
 .content-master {
-  position: relative;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1;
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
 }
 
 .content-master.is-active {
-  color: transparent;
-  opacity: 0;
+    color: transparent;
+    opacity: 0;
 }
 
 .content-master.is-active .emoji {
-  opacity: 0;
+    opacity: 0;
 }
 
 .content {
-  overflow: hidden;
-  font-family: "Verdana, sans-serif"
-  font-size: 16px;
-  line-height: 1.25;
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 1.25;
 }
 
 .content.is-selection {
-  color: #000;
-  background: rgba(0, 0, 0, 0);
+    color: #000;
+    background: rgba(0, 0, 0, 0);
 }
 
 .content a {
-  color: inherit;
-  text-decoration: underline;
+    color: inherit;
+    text-decoration: underline;
 }
 
 blockquote {
-  margin: 1em 4em;
-  text-align: center;
+    margin: 1em 4em;
+    text-align: center;
 }
 
 blockquote::before {
-  content: "\201C";
+    content: "\201C";
 }
 
 blockquote::after {
-  content: "\201D";
+    content: "\201D";
 }
 
 canvas,
 svg {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
