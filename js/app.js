@@ -274,14 +274,14 @@ function resizeDrawingSurface(gl) {
 }
 
 function detectFloatTextureSupport(gl) {
-  const result = { type: null, arrayType: Float32Array };
+  const result = { type: null, arrayType: Float32Array, filter: gl.LINEAR };
 
-  const canRenderType = (type) => {
+  const canRenderType = (type, filter) => {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, type, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
 
     const framebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
@@ -298,20 +298,31 @@ function detectFloatTextureSupport(gl) {
   };
 
   const floatExtension = gl.getExtension('OES_texture_float');
+  const floatColorBuffer =
+    floatExtension && (gl.getExtension('WEBGL_color_buffer_float') || gl.getExtension('EXT_color_buffer_float'));
   const floatLinear = floatExtension && gl.getExtension('OES_texture_float_linear');
 
-  if (floatExtension && floatLinear && canRenderType(gl.FLOAT)) {
-    result.type = gl.FLOAT;
-    return result;
+  if (floatExtension && floatColorBuffer) {
+    const filter = floatLinear ? gl.LINEAR : gl.NEAREST;
+    if (canRenderType(gl.FLOAT, filter)) {
+      result.type = gl.FLOAT;
+      result.filter = filter;
+      return result;
+    }
   }
 
   const halfFloatExtension = gl.getExtension('OES_texture_half_float');
+  const halfFloatColorBuffer = halfFloatExtension && gl.getExtension('EXT_color_buffer_half_float');
   const halfFloatLinear = halfFloatExtension && gl.getExtension('OES_texture_half_float_linear');
 
-  if (halfFloatExtension && halfFloatLinear && canRenderType(halfFloatExtension.HALF_FLOAT_OES)) {
-    result.type = halfFloatExtension.HALF_FLOAT_OES;
-    result.arrayType = Uint16Array;
-    return result;
+  if (halfFloatExtension && halfFloatColorBuffer) {
+    const filter = halfFloatLinear ? gl.LINEAR : gl.NEAREST;
+    if (canRenderType(halfFloatExtension.HALF_FLOAT_OES, filter)) {
+      result.type = halfFloatExtension.HALF_FLOAT_OES;
+      result.arrayType = Uint16Array;
+      result.filter = filter;
+      return result;
+    }
   }
 
   return null;
@@ -477,8 +488,9 @@ function createHeatmapSimulator(gl, quadBuffer, panelMetrics, floatSupport) {
   for (let index = 0; index < 2; index += 1) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    const filter = floatSupport.filter || gl.LINEAR;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texImage2D(
