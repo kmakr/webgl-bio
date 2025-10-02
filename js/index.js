@@ -24,13 +24,13 @@
         (l.type = "text/javascript"),
           (l.charset = "utf-8"),
           (l.async = !0),
-          (l.src = t.p + "assets/" + e + ".6ed3c15f0985dc9d172a.js"),
+          (l.src = t.p + e + ".6ed3c15f0985dc9d172a.js"),
           a.appendChild(l);
       }
     }),
     (t.m = e),
     (t.c = a),
-    (t.p = "/"),
+    (t.p = "./js/"),
     t(0)
   );
 })([
