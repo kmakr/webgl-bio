@@ -370,22 +370,22 @@
         }
 
         void main() {
-          vec2 uv = gl_FragCoord.xy / u_res.xy;
-          vec2 p = uv * vec2(u_res.x / u_res.y, 1.0) * 2.4;
+          // normalize by the longer edge so portrait/landscape see the same scale
+          float ref = max(u_res.x, u_res.y);
+          vec2 p = (gl_FragCoord.xy / ref) * 5.30;
 
-          float t = u_time * 0.04;
+          float t = u_time * 0.24;
           vec2 q = vec2(fbm(p + vec2(t, -t * 0.6)), fbm(p + vec2(-t * 0.5, t)));
-          float f = fbm(p + 1.8 * q + vec2(t * 0.3, 0.0));
+          float f = fbm(p + 1.85 * q + vec2(t * 0.3, 0.0));
 
-          float fog = smoothstep(0.25, 0.95, f);
-          fog *= 0.55;
+          float fog = smoothstep(0.37, 0.91, f);
+          fog *= 0.41;
 
-          // light theme: darken slightly with soft drifting fog
-          vec3 base = vec3(0.961, 0.961, 0.949);   // matches --bg #f5f5f2
-          vec3 shade = vec3(0.035);                // matches --fg #090909
-          vec3 col = mix(base, shade, fog * 0.18);
+          vec3 base = vec3(0.961, 0.961, 0.949);
+          vec3 shade = vec3(0.035);
+          vec3 col = mix(base, shade, fog * 0.69);
 
-          gl_FragColor = vec4(col, fog * 0.9);
+          gl_FragColor = vec4(col, fog);
         }
       `;
 
