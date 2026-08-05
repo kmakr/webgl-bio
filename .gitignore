@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vercel/
+.astro/
+.vite/
+.wrangler/
+.claude/
+tsconfig.tsbuildinfo
+.DS_Store

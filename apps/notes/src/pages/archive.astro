@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+
+const notes = (await getCollection('notes', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const years = Map.groupBy(notes, (note) => note.data.date.getFullYear());
+---
+
+<BaseLayout title="Archive — Theo Azriel">
+  <SiteHeader section="Archive" />
+  <main class="archive-shell">
+    <header class="archive-header">
+      <p class="eyebrow">All published notes</p>
+      <h1>Archive</h1>
+    </header>
+    {[...years].map(([year, entries]) => (
+      <section class="archive-year">
+        <h2>{year}</h2>
+        <ol>
+          {entries.map((note) => (
+            <li>
+              <a href={`/notes/${note.id}`}>{note.data.title}</a>
+              <time datetime={note.data.date.toISOString()}>{note.data.date.toISOString().slice(0, 10)}</time>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))}
+  </main>
+</BaseLayout>

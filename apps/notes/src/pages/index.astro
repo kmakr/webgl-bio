@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import TapeLabel from '../components/TapeLabel.astro';
+
+const notes = (await getCollection('notes', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const formatDate = (date: Date) => new Intl.DateTimeFormat('en-GB', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+}).format(date);
+---
+
+<BaseLayout>
+  <SiteHeader />
+  <main>
+    <section class="index-hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Working record / Hong Kong</p>
+        <h1 id="page-title">Notes on making things.</h1>
+      </div>
+      <p class="hero-intro">Interfaces, systems, tools, and experiments. Written when a result is useful enough to keep.</p>
+      <TapeLabel count={notes.length} />
+    </section>
+
+    <section class="notes-index" aria-labelledby="recent-title">
+      <header class="list-heading">
+        <h2 id="recent-title">Recent notes</h2>
+        <span>{String(notes.length).padStart(2, '0')}</span>
+      </header>
+      <ol class="note-list">
+        {notes.map((note, index) => (
+          <li>
+            <a href={`/notes/${note.id}`}>
+              <span class="note-number">{String(index + 1).padStart(2, '0')}</span>
+              <span class="note-title">{note.data.title}</span>
+              <span class="note-tags">{note.data.tags.join(' / ')}</span>
+              <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <span>Theo Azriel</span>
+    <a href="https://theoazriel.com">Portfolio ↗</a>
+    <span>© {new Date().getFullYear()}</span>
+  </footer>
+</BaseLayout>

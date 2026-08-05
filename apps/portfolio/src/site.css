@@ -1,0 +1,413 @@
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: #fff;
+  color: #090909;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+body.portfolio-open {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+.site {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  isolation: isolate;
+  overflow: hidden;
+  background: #fff;
+}
+
+.site.is-portfolio {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+#canvas-host {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+#canvas-host canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.is-portfolio #canvas-host {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100svh;
+}
+
+.versions {
+  position: fixed;
+  top: 17px;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  gap: 17px;
+  transform: translateX(-50%);
+}
+
+.versions button {
+  height: 20px;
+  padding: 0;
+  border: 0;
+  color: #d0d0d0;
+  background: transparent;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.versions button:hover {
+  color: #777;
+}
+
+.versions button.is-active {
+  color: #090909;
+  background: transparent;
+}
+
+.versions button:focus-visible {
+  outline: 1px solid #090909;
+  outline-offset: 4px;
+}
+
+.portfolio-header {
+  position: absolute;
+  top: 17px;
+  right: 18px;
+  left: 18px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.wordmark {
+  font-weight: 600;
+}
+
+.section-nav {
+  display: flex;
+  gap: 18px;
+}
+
+.section-nav button,
+.section-nav a,
+.scroll-cue {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.section-nav button:hover,
+.section-nav a:hover,
+.scroll-cue:hover {
+  color: #777;
+}
+
+.section-nav button:focus-visible,
+.section-nav a:focus-visible,
+.scroll-cue:focus-visible,
+.contact-section a:focus-visible {
+  outline: 1px solid #090909;
+  outline-offset: 4px;
+}
+
+.portfolio-hero {
+  position: relative;
+  z-index: 2;
+  height: 100svh;
+  min-height: 600px;
+  pointer-events: none;
+}
+
+.hero-caption,
+.scroll-cue {
+  position: absolute;
+  bottom: 20px;
+  z-index: 4;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+
+.hero-caption {
+  left: 19px;
+}
+
+.hero-caption p {
+  margin: 0;
+}
+
+.scroll-cue {
+  right: 19px;
+  pointer-events: auto;
+}
+
+.content-section {
+  position: relative;
+  z-index: 3;
+  padding: 92px 20px;
+  border-top: 1px solid #cfcfcf;
+  background: #fff;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 74px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.section-heading h2,
+.section-heading p {
+  margin: 0;
+  font: inherit;
+}
+
+.work-section {
+  min-height: 100svh;
+}
+
+.work-list {
+  border-top: 1px solid #090909;
+}
+
+.work-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.75fr) auto;
+  gap: 28px;
+  align-items: baseline;
+  min-height: 142px;
+  padding: 25px 0;
+  border-bottom: 1px solid #090909;
+}
+
+.work-row h3,
+.work-row p {
+  margin: 0;
+}
+
+.work-row h3 {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: clamp(34px, 5.2vw, 78px);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.work-row p {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.about-section {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.4fr) minmax(0, 1fr);
+  gap: 8vw;
+  min-height: 92svh;
+}
+
+.about-section .section-heading {
+  display: block;
+  margin: 0;
+}
+
+.about-section .section-heading p {
+  margin-top: 8px;
+  color: #777;
+}
+
+.about-copy {
+  max-width: 970px;
+  margin: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: clamp(38px, 5.8vw, 86px);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.contact-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 78svh;
+  padding-top: 26px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.contact-section > p {
+  margin: 0 0 80px;
+}
+
+.contact-section > a {
+  align-self: flex-start;
+  color: #090909;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: clamp(39px, 7.5vw, 112px);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  text-decoration-thickness: 0.05em;
+  text-underline-offset: 0.08em;
+  text-transform: lowercase;
+}
+
+.footer-line {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 80px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 680px) {
+  .versions {
+    top: 16px;
+    bottom: auto;
+    gap: 13px;
+  }
+
+  .versions button {
+    font-size: 11px;
+  }
+
+  .is-portfolio .versions {
+    right: 15px;
+    left: auto;
+    gap: 11px;
+    transform: none;
+  }
+
+  .portfolio-header {
+    right: auto;
+  }
+
+  .section-nav {
+    display: none;
+  }
+
+  .portfolio-hero {
+    min-height: 560px;
+  }
+
+  .hero-caption {
+    max-width: 190px;
+  }
+
+  .content-section {
+    padding: 68px 15px;
+  }
+
+  .section-heading {
+    margin-bottom: 52px;
+  }
+
+  .work-row {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    min-height: 116px;
+    padding: 20px 0;
+  }
+
+  .work-row h3 {
+    grid-column: 1 / -1;
+    font-size: clamp(37px, 12vw, 58px);
+  }
+
+  .work-row p:last-child {
+    text-align: right;
+  }
+
+  .about-section {
+    display: block;
+    min-height: 86svh;
+  }
+
+  .about-section .section-heading {
+    margin-bottom: 74px;
+  }
+
+  .about-copy {
+    font-size: clamp(39px, 12vw, 60px);
+  }
+
+  .contact-section {
+    min-height: 68svh;
+  }
+
+  .contact-section > a {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: clamp(35px, 11vw, 52px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

@@ -1,0 +1,10 @@
+name = "wild-sun-9904"
+compatibility_date = "2025-08-18"
+workers_dev = true
+
+[assets]
+directory = "./dist"
+
+[[routes]]
+pattern = "theoazriel.com"
+custom_domain = true

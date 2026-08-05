@@ -1,0 +1,35 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+
+const { title, summary, date, tags = [] } = Astro.props;
+const dateText = new Intl.DateTimeFormat('en-GB', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+}).format(date);
+---
+
+<BaseLayout title={`${title} — Theo Azriel`} description={summary}>
+  <SiteHeader section="Note" />
+  <main class="note-shell">
+    <header class="note-header">
+      <p class="note-kicker">Note / {dateText}</p>
+      <h1>{title}</h1>
+      <p class="note-summary">{summary}</p>
+      <div class="note-meta">
+        <time datetime={date.toISOString()}>{dateText}</time>
+        <div class="tag-list" aria-label="Tags">
+          {tags.map((tag: string) => <a href={`/tags/${tag.toLowerCase()}`}>{tag}</a>)}
+        </div>
+      </div>
+    </header>
+    <article class="prose">
+      <slot />
+    </article>
+    <footer class="note-footer">
+      <a href="/">← All notes</a>
+      <a href="mailto:theo.azriel@icloud.com">Reply by email</a>
+    </footer>
+  </main>
+</BaseLayout>
