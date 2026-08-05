@@ -9,34 +9,24 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: 'short',
   year: 'numeric',
-}).format(date);
+}).format(date).replace(/ (\d{4})$/, ', $1');
 ---
 
 <BaseLayout>
   <SiteHeader />
-  <main class="page-shell home-shell">
-    <header class="home-intro">
-      <h1 id="page-title">Notes</h1>
-      <p>Working notes on interfaces, systems, tools, and experiments.</p>
-    </header>
-
-    <section aria-labelledby="recent-title">
-      <h2 class="section-title" id="recent-title">Recent posts</h2>
-      <ol class="post-list">
-        {notes.map((note) => (
-          <li>
-            <a href={`/notes/${note.id}`}>
-              <span>{note.data.title}</span>
-              <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
-            </a>
-            <p>{note.data.summary}</p>
-          </li>
-        ))}
-      </ol>
-    </section>
+  <main>
+    <h2 id="page-title">Blog</h2>
+    <p>Working notes on interfaces, systems, tools, and experiments.</p>
+    <ul class="blog-posts" aria-label="Blog posts">
+      {notes.map((note) => (
+        <li>
+          <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
+          <a href={`/notes/${note.id}`}>{note.data.title}</a>
+        </li>
+      ))}
+    </ul>
   </main>
   <footer class="site-footer">
-    <span>© {new Date().getFullYear()} Theo Azriel</span>
-    <a href="mailto:theo.azriel@icloud.com">Email</a>
+    <p>© {new Date().getFullYear()} Theo Azriel · <a href="mailto:theo.azriel@icloud.com">Email</a></p>
   </footer>
 </BaseLayout>
