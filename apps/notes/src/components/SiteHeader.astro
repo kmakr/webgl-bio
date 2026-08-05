@@ -1,13 +1,11 @@
----
-const { section = 'Notes' } = Astro.props;
----
-
 <header class="site-header">
-  <a class="identity" href="/" aria-label="Theo Azriel notes home">Theo Azriel</a>
-  <span class="section-name">{section}</span>
-  <nav aria-label="Primary navigation">
-    <a href="https://theoazriel.com">Portfolio</a>
-    <a href="/archive">Archive</a>
-    <a href="/feed.xml">RSS</a>
-  </nav>
+  <div class="site-nav">
+    <a class="identity" href="/" aria-label="Theo Azriel notes home">Theo Azriel</a>
+    <nav aria-label="Primary navigation">
+      <a href="/">Notes</a>
+      <a href="/archive">Archive</a>
+      <a href="https://theoazriel.com">Portfolio</a>
+      <a href="/feed.xml">RSS</a>
+    </nav>
+  </div>
 </header>

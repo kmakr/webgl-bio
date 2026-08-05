@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
-import TapeLabel from '../components/TapeLabel.astro';
 
 const notes = (await getCollection('notes', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -15,38 +14,29 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat('en-GB', {
 
 <BaseLayout>
   <SiteHeader />
-  <main>
-    <section class="index-hero" aria-labelledby="page-title">
-      <div>
-        <p class="eyebrow">Working record / Hong Kong</p>
-        <h1 id="page-title">Notes on making things.</h1>
-      </div>
-      <p class="hero-intro">Interfaces, systems, tools, and experiments. Written when a result is useful enough to keep.</p>
-      <TapeLabel count={notes.length} />
-    </section>
+  <main class="page-shell home-shell">
+    <header class="home-intro">
+      <h1 id="page-title">Notes</h1>
+      <p>Working notes on interfaces, systems, tools, and experiments.</p>
+    </header>
 
-    <section class="notes-index" aria-labelledby="recent-title">
-      <header class="list-heading">
-        <h2 id="recent-title">Recent notes</h2>
-        <span>{String(notes.length).padStart(2, '0')}</span>
-      </header>
-      <ol class="note-list">
-        {notes.map((note, index) => (
+    <section aria-labelledby="recent-title">
+      <h2 class="section-title" id="recent-title">Recent posts</h2>
+      <ol class="post-list">
+        {notes.map((note) => (
           <li>
             <a href={`/notes/${note.id}`}>
-              <span class="note-number">{String(index + 1).padStart(2, '0')}</span>
-              <span class="note-title">{note.data.title}</span>
-              <span class="note-tags">{note.data.tags.join(' / ')}</span>
+              <span>{note.data.title}</span>
               <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
             </a>
+            <p>{note.data.summary}</p>
           </li>
         ))}
       </ol>
     </section>
   </main>
   <footer class="site-footer">
-    <span>Theo Azriel</span>
-    <a href="https://theoazriel.com">Portfolio ↗</a>
-    <span>© {new Date().getFullYear()}</span>
+    <span>© {new Date().getFullYear()} Theo Azriel</span>
+    <a href="mailto:theo.azriel@icloud.com">Email</a>
   </footer>
 </BaseLayout>
