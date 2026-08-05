@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { HoloApp, type HoloParams } from './scene.ts';
 
 const STATIC_QUOTE = 'Useful things do not need to shout.';
 const A4_LANDSCAPE_ASPECT = Math.SQRT2;
 
-type MaterialVersion = 'silver' | 'tape';
+type MaterialVersion =
+  | 'tape'
+  | 'holo'
+  | 'black';
 
 const SILVER_PARAMS: HoloParams = {
   performance: 'High',
@@ -93,8 +96,70 @@ const TAPE_PARAMS: HoloParams = {
   },
 };
 
-const paramsFor = (version: MaterialVersion) =>
-  version === 'silver' ? SILVER_PARAMS : TAPE_PARAMS;
+const HOLO_PARAMS: HoloParams = {
+  ...SILVER_PARAMS,
+  material: {
+    ...SILVER_PARAMS.material,
+    preset: 'Holo',
+    finish: 'Matte',
+    baseColor: '#20242d',
+    holoIntensity: 3.78,
+    holoScale: 400,
+    bandFreq: 1.1,
+    saturation: 1,
+    hueShift: 0.37,
+    sparkle: 0.73,
+    specTint: 0.33,
+    iridescence: 0.81,
+    roughness: 0.62,
+    metalness: 1,
+    clearcoat: 0.06,
+    coatRoughness: 0.7,
+    sheen: 0,
+    transmission: 0,
+    thickness: 0,
+    bump: 3,
+    bumpTiling: 3,
+  },
+  render: {
+    ...SILVER_PARAMS.render,
+    exposure: 0.62,
+    environment: 0.82,
+    bloom: 0.05,
+    bloomThreshold: 1.41,
+    noise: 0.12,
+    occlusionStrength: 1,
+  },
+};
+
+const BLACK_CHROME_PARAMS: HoloParams = {
+  ...SILVER_PARAMS,
+  material: {
+    ...SILVER_PARAMS.material,
+    preset: 'Black Chrome',
+    finish: 'Glossy',
+    baseColor: '#080808',
+    roughness: 0.1,
+    metalness: 1,
+    clearcoat: 0.9,
+    coatRoughness: 0.08,
+    iridescence: 0.08,
+    bump: 0.5,
+    bumpTiling: 5,
+  },
+  render: {
+    ...SILVER_PARAMS.render,
+    exposure: 0.9,
+    environment: 1.5,
+    noise: 0.035,
+  },
+};
+
+const paramsFor = (version: MaterialVersion) => {
+  if (version === 'holo') return HOLO_PARAMS;
+  if (version === 'black') return BLACK_CHROME_PARAMS;
+  return TAPE_PARAMS;
+};
 
 function drawBarcode(
   ctx: CanvasRenderingContext2D,
@@ -103,6 +168,7 @@ function drawBarcode(
   width: number,
   height: number,
   code: string,
+  color: string,
 ) {
   const bits = `1101001${[...code]
     .map((digit, index) => {
@@ -113,7 +179,7 @@ function drawBarcode(
   const barWidth = width / bits.length;
 
   ctx.save();
-  ctx.fillStyle = '#050505';
+  ctx.fillStyle = color;
   for (let index = 0; index < bits.length; index += 1) {
     if (bits[index] === '1') ctx.fillRect(x + index * barWidth, y, barWidth + 0.65, height);
   }
@@ -128,9 +194,7 @@ export default function App() {
   const heroRef = useRef<HTMLElement>(null);
   const appRef = useRef<HoloApp | null>(null);
   const textureRequestRef = useRef(0);
-  const [materialVersion, setMaterialVersion] = useState<MaterialVersion>(() =>
-    location.hash === '#silver' ? 'silver' : 'tape',
-  );
+  const materialVersion: MaterialVersion = 'tape';
 
   useEffect(() => {
     if (!hostRef.current) return;
@@ -138,7 +202,7 @@ export default function App() {
     const app = new HoloApp(hostRef.current);
     appRef.current = app;
     app.setClothAspect(A4_LANDSCAPE_ASPECT);
-    app.applyParams(SILVER_PARAMS);
+    app.applyParams(paramsFor(materialVersion));
     app.reveal();
 
     const bump = new Image();
@@ -154,7 +218,7 @@ export default function App() {
   useEffect(() => {
     appRef.current?.applyParams(paramsFor(materialVersion));
     document.body.classList.add('portfolio-open');
-    history.replaceState(null, '', materialVersion === 'silver' ? '#silver' : '#tape');
+    history.replaceState(null, '', `#${materialVersion}`);
 
     return () => document.body.classList.remove('portfolio-open');
   }, [materialVersion]);
@@ -194,11 +258,26 @@ export default function App() {
       if (!ctx) return;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#050505';
+      const inkColor = paramsFor(materialVersion).material.preset === 'Black Chrome'
+        ? '#f5f5f1'
+        : '#050505';
+      ctx.fillStyle = inkColor;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
       ctx.letterSpacing = '0px';
       const printLeft = 120;
+
+      ctx.save();
+      ctx.globalAlpha = 0.62;
+      ctx.font = '400 22px "IBM Plex Mono", monospace';
+      for (let y = 76; y < canvas.height; y += 64) {
+        for (let x = 42; x < canvas.width; x += 360) {
+          const offset = (Math.floor(y / 64) % 2) * 145;
+          ctx.fillText('THEO AZRIEL / AUTHENTIC / 26041992', x - offset, y);
+        }
+      }
+      ctx.restore();
+
       ctx.font = '600 280px "IBM Plex Mono", monospace';
       ctx.fillText('THEO', printLeft, 420);
       ctx.fillText('AZRIEL', printLeft, 710);
@@ -206,7 +285,7 @@ export default function App() {
       ctx.font = '400 34px "IBM Plex Mono", monospace';
       ctx.fillText(`“${STATIC_QUOTE.toUpperCase()}”`, printLeft, 900, 1250);
 
-      drawBarcode(ctx, printLeft, 1010, 520, 92, '260419920104');
+      drawBarcode(ctx, printLeft, 1010, 520, 92, '260419920104', inkColor);
 
       const image = new Image();
       image.onload = () => {
@@ -237,25 +316,6 @@ export default function App() {
           <button type="button" onClick={() => scrollToSection('contact')}>Contact</button>
         </nav>
       </header>
-
-      <nav className="versions" aria-label="Material versions">
-        <button
-          className={materialVersion === 'silver' ? 'is-active' : ''}
-          type="button"
-          aria-pressed={materialVersion === 'silver'}
-          onClick={() => setMaterialVersion('silver')}
-        >
-          Silver
-        </button>
-        <button
-          className={materialVersion === 'tape' ? 'is-active' : ''}
-          type="button"
-          aria-pressed={materialVersion === 'tape'}
-          onClick={() => setMaterialVersion('tape')}
-        >
-          Clear tape
-        </button>
-      </nav>
 
       <section className="portfolio-hero" ref={heroRef} aria-labelledby="portfolio-title">
             <h1 id="portfolio-title" className="sr-only">Theo Azriel</h1>

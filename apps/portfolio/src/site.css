@@ -67,43 +67,6 @@ a {
   height: 100svh;
 }
 
-.versions {
-  position: fixed;
-  top: 17px;
-  left: 50%;
-  z-index: 6;
-  display: flex;
-  gap: 17px;
-  transform: translateX(-50%);
-}
-
-.versions button {
-  height: 20px;
-  padding: 0;
-  border: 0;
-  color: #d0d0d0;
-  background: transparent;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 13px;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.versions button:hover {
-  color: #777;
-}
-
-.versions button.is-active {
-  color: #090909;
-  background: transparent;
-}
-
-.versions button:focus-visible {
-  outline: 1px solid #090909;
-  outline-offset: 4px;
-}
-
 .portfolio-header {
   position: absolute;
   top: 17px;
@@ -325,23 +288,6 @@ a {
 }
 
 @media (max-width: 680px) {
-  .versions {
-    top: 16px;
-    bottom: auto;
-    gap: 13px;
-  }
-
-  .versions button {
-    font-size: 11px;
-  }
-
-  .is-portfolio .versions {
-    right: 15px;
-    left: auto;
-    gap: 11px;
-    transform: none;
-  }
-
   .portfolio-header {
     right: auto;
   }

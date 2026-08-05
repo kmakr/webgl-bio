@@ -164,7 +164,10 @@ export function createHoloMaterial(surfaceTexture: THREE.Texture): HoloMaterial 
           // folds swallow the glow where cavity occlusion applies
           float energy = (0.22 + 0.78 * fres) * flake;
           float holoAO = 1.0 - uCavityAmount * vCavity * 0.8;
-          totalEmissiveRadiance += rainbow * uHoloIntensity * (energy * 0.55 + glint * fres * 0.5) * holoAO;
+          // Printed ink sits above the foil and blocks its diffraction. Without
+          // this mask, bright holo energy washes black artwork off the surface.
+          float printMask = 1.0 - surfA * 0.96;
+          totalEmissiveRadiance += rainbow * uHoloIntensity * (energy * 0.55 + glint * fres * 0.5) * holoAO * printMask;
 
           // tint the metallic F0 so specular reflections go iridescent —
           // this is what makes real holo foil flash color, not glow
