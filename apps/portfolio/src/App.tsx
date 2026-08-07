@@ -276,10 +276,14 @@ export default function App() {
       ctx.save();
       ctx.globalAlpha = 0.54;
       ctx.font = '400 17px "IBM Plex Mono", monospace';
+      // step from the measured string, not a magic number: at 17px the run is
+      // ~337px wide, so a fixed 330 step ran each repetition into the next
+      const runText = 'theo azriel / authentic / 26041992';
+      const runStep = ctx.measureText(runText).width + 26;
       for (let y = 70; y < canvas.height; y += 58) {
-        for (let x = 42; x < canvas.width; x += 330) {
-          const offset = (Math.floor(y / 58) % 2) * 132;
-          ctx.fillText('theo azriel / authentic / 26041992', x - offset, y);
+        const offset = (Math.floor(y / 58) % 2) * (runStep / 2.5);
+        for (let x = 42; x < canvas.width + runStep; x += runStep) {
+          ctx.fillText(runText, x - offset, y);
         }
       }
       ctx.restore();
