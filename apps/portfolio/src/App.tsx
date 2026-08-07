@@ -12,10 +12,11 @@ type MaterialVersion =
 const SILVER_PARAMS: HoloParams = {
   performance: 'High',
   physics: {
-    viscosity: 0.58,
+    // light air drag, not gel — the drape has to keep swinging on the line
+    viscosity: 0.09,
     stiffness: 0.96,
     iterations: 14,
-    smoothing: 0.05,
+    smoothing: 0.02,
     grabRadius: 0.32,
   },
   material: {
@@ -183,7 +184,7 @@ function drawBarcode(
   for (let index = 0; index < bits.length; index += 1) {
     if (bits[index] === '1') ctx.fillRect(x + index * barWidth, y, barWidth + 0.65, height);
   }
-  ctx.font = '400 21px "IBM Plex Mono", monospace';
+  ctx.font = '400 17px "IBM Plex Mono", monospace';
   ctx.letterSpacing = '0px';
   ctx.fillText(code, x, y + height + 30);
   ctx.restore();
@@ -246,8 +247,8 @@ export default function App() {
     const request = ++textureRequestRef.current;
     const renderPrint = async () => {
       await Promise.all([
-        document.fonts.load('600 300px "IBM Plex Mono"'),
-        document.fonts.load('400 34px "IBM Plex Mono"'),
+        document.fonts.load('600 190px "IBM Plex Mono"'),
+        document.fonts.load('400 28px "IBM Plex Mono"'),
       ]);
       if (textureRequestRef.current !== request || appRef.current !== app) return;
 
@@ -265,27 +266,27 @@ export default function App() {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
       ctx.letterSpacing = '0px';
-      const printLeft = 120;
+      const printLeft = 150;
 
       ctx.save();
-      ctx.globalAlpha = 0.62;
-      ctx.font = '400 22px "IBM Plex Mono", monospace';
-      for (let y = 76; y < canvas.height; y += 64) {
-        for (let x = 42; x < canvas.width; x += 360) {
-          const offset = (Math.floor(y / 64) % 2) * 145;
-          ctx.fillText('THEO AZRIEL / AUTHENTIC / 26041992', x - offset, y);
+      ctx.globalAlpha = 0.54;
+      ctx.font = '400 17px "IBM Plex Mono", monospace';
+      for (let y = 70; y < canvas.height; y += 58) {
+        for (let x = 42; x < canvas.width; x += 330) {
+          const offset = (Math.floor(y / 58) % 2) * 132;
+          ctx.fillText('theo azriel / authentic / 26041992', x - offset, y);
         }
       }
       ctx.restore();
 
-      ctx.font = '600 280px "IBM Plex Mono", monospace';
-      ctx.fillText('THEO', printLeft, 420);
-      ctx.fillText('AZRIEL', printLeft, 710);
+      ctx.font = '600 190px "IBM Plex Mono", monospace';
+      ctx.fillText('theo', printLeft, 340);
+      ctx.fillText('azriel', printLeft, 550);
 
-      ctx.font = '400 34px "IBM Plex Mono", monospace';
-      ctx.fillText(`“${STATIC_QUOTE.toUpperCase()}”`, printLeft, 900, 1250);
+      ctx.font = '400 28px "IBM Plex Mono", monospace';
+      ctx.fillText(`“${STATIC_QUOTE.toLowerCase()}”`, printLeft, 770, 1120);
 
-      drawBarcode(ctx, printLeft, 1010, 520, 92, '260419920104', inkColor);
+      drawBarcode(ctx, printLeft, 890, 430, 70, '260419920104', inkColor);
 
       const image = new Image();
       image.onload = () => {

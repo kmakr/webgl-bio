@@ -11,7 +11,6 @@ import { createHoloMaterial, type HoloUniforms } from './holoMaterial.ts';
 import { SurfaceLayer, type DecalItem } from './decals.ts';
 import { normalMapFromImage } from './textures.ts';
 import { MacroDofPass } from './dofPass.ts';
-import { BAKED_POSE } from './bakedPose.ts';
 
 /** Per-version snapshot of everything image-related (session-scoped). */
 export interface ImagesState {
@@ -87,6 +86,10 @@ const TONE_MAPPINGS: Record<string, THREE.ToneMapping> = {
 const CLOTH_LONG_SIDE = 3.6;
 const CLOTH_SEGMENTS = 48;
 const WHITE = new THREE.Color(0xffffff);
+// the drape hangs symmetrically about x=0 and sags below the line, so the
+// hero looks slightly down-frame at the cloth from a shallow 3/4 angle
+const HERO_CAMERA = [0.86, 0.72, 4.4] as const;
+const HERO_TARGET = [0, -0.14, 0] as const;
 
 function makeColorBackdropTexture() {
   const canvas = document.createElement('canvas');
@@ -154,6 +157,9 @@ export class HoloApp {
   private sim!: ClothSim;
   private clothMesh: THREE.Mesh;
   private clothGeometry!: THREE.BufferGeometry;
+  private clothesline = new THREE.Group();
+  private lineMaterial: THREE.MeshStandardMaterial;
+  private clipMaterial: THREE.MeshStandardMaterial;
   private holoUniforms: HoloUniforms;
   private holoMaterial: THREE.MeshPhysicalMaterial;
   private colorBackdrop: THREE.Mesh;
@@ -217,7 +223,7 @@ export class HoloApp {
     this.scene.add(this.colorBackdrop);
 
     this.camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 200);
-    this.camera.position.set(...BAKED_POSE.camera);
+    this.camera.position.set(...HERO_CAMERA);
 
     // image-based lighting from a neutral studio room
     const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -243,12 +249,24 @@ export class HoloApp {
     if (this.holoMaterial.roughnessMap) this.holoMaterial.roughnessMap.anisotropy = maxAniso;
     this.surface.texture.anisotropy = maxAniso;
 
+    this.lineMaterial = new THREE.MeshStandardMaterial({
+      color: 0x2f3034,
+      roughness: 0.55,
+      metalness: 0.15,
+    });
+    this.clipMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1d1e21,
+      roughness: 0.42,
+      metalness: 0.2,
+    });
+
     this.clothMesh = new THREE.Mesh(undefined, this.holoMaterial);
     this.clothMesh.frustumCulled = false;
     // hidden until the app has loaded its assets and calls reveal()
     this.clothMesh.visible = false;
+    this.clothesline.visible = false;
     this.buildCloth(1);
-    this.scene.add(this.clothMesh);
+    this.scene.add(this.clothMesh, this.clothesline);
 
     // interaction listeners BEFORE OrbitControls so grabs win the pointer
     const canvas = this.renderer.domElement;
@@ -266,7 +284,7 @@ export class HoloApp {
     this.controls.dampingFactor = 0.08;
     this.controls.minDistance = 1.6;
     this.controls.maxDistance = 30;
-    this.controls.target.set(...BAKED_POSE.target);
+    this.controls.target.set(...HERO_TARGET);
     this.controls.update();
 
     // post: MSAA + half-float HDR chain, bloom, tonemap+sRGB, grain
@@ -320,8 +338,41 @@ export class HoloApp {
     this.clothGeometry = geo;
     if (old) old.dispose();
     this.holoUniforms.uClothSize.value.set(w, h);
+    this.buildClothesline();
     this.focusVertex = null; // vertex indices are invalid after a rebuild
     this.cancelInteraction();
+  }
+
+  /**
+   * The line the cloth hangs from, plus a clip at each peg. Rebuilt with the
+   * cloth because the peg positions follow its dimensions.
+   */
+  private buildClothesline() {
+    for (const child of this.clothesline.children) {
+      (child as THREE.Mesh).geometry.dispose();
+    }
+    this.clothesline.clear();
+
+    const pegs = this.sim.pegPoints();
+    // long enough to run out of frame at any orbit distance we allow
+    const wire = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.008, 0.008, 60, 8),
+      this.lineMaterial,
+    );
+    wire.rotation.z = Math.PI / 2;
+    wire.position.set(0, pegs[0].y, pegs[0].z);
+    wire.frustumCulled = false;
+    this.clothesline.add(wire);
+
+    for (const peg of pegs) {
+      const clip = new THREE.Mesh(
+        new THREE.BoxGeometry(0.058, 0.2, 0.026),
+        this.clipMaterial,
+      );
+      // sits just in front of the fabric, straddling the wire
+      clip.position.set(peg.x, peg.y + 0.028, peg.z + 0.028);
+      this.clothesline.add(clip);
+    }
   }
 
   /** Fully tear down any in-flight grab/decal drag (e.g. cloth rebuilt). */
@@ -461,6 +512,7 @@ export class HoloApp {
   /** Show the cloth once the app's assets are in place. */
   reveal() {
     this.clothMesh.visible = true;
+    this.clothesline.visible = true;
   }
 
   /** Small data-URL preview of an image, cached per element. */
@@ -782,10 +834,11 @@ export class HoloApp {
     this.camera.aspect = aspect;
 
     // Portrait screens need more distance to keep the wide A4 cloth and its
-    // printed typography inside the narrow frame.
-    const target = new THREE.Vector3(...BAKED_POSE.target);
-    const position = new THREE.Vector3(...BAKED_POSE.camera);
-    const distance = aspect < 0.72 ? 2.2 : aspect < 1 ? 1.35 : 1;
+    // printed typography inside the narrow frame; every aspect needs enough
+    // room above the line for it to read as a line rather than a page edge.
+    const target = new THREE.Vector3(...HERO_TARGET);
+    const position = new THREE.Vector3(...HERO_CAMERA);
+    const distance = aspect < 0.72 ? 2.5 : aspect < 1 ? 1.6 : 1.3;
     position.sub(target).multiplyScalar(distance).add(target);
     this.camera.position.copy(position);
     this.controls.target.copy(target);
@@ -877,6 +930,8 @@ export class HoloApp {
     this.composer.dispose();
     this.clothGeometry.dispose();
     this.holoMaterial.dispose();
+    this.lineMaterial.dispose();
+    this.clipMaterial.dispose();
     const backdropMaterial = this.colorBackdrop.material as THREE.MeshBasicMaterial;
     backdropMaterial.map?.dispose();
     backdropMaterial.dispose();
