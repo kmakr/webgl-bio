@@ -1,8 +1,7 @@
 import * as THREE from 'three';
-import { BAKED_POSE } from './bakedPose.ts';
 
 export interface ClothPhysicsParams {
-  /** 0..0.6 — how fast motion dies out (gel viscosity). */
+  /** 0..0.6 — how fast motion dies out (air drag). */
   viscosity: number;
   /** 0..1 — constraint solve strength. */
   stiffness: number;
@@ -22,11 +21,19 @@ interface GrabState {
 
 const SUBSTEP = 1 / 120;
 const MAX_SUBSTEPS = 4;
+/** fraction of the top edge each peg sits in from its corner */
+const PEG_INSET = 0.1;
+/**
+ * How much narrower the peg span is than the fabric between the pegs. The
+ * slack has nowhere to go but out of plane, which is what buckles a hung
+ * sheet into vertical folds — a sheet clipped up perfectly taut stays flat.
+ */
+const PEG_GATHER = 0.9;
 
 /**
- * Verlet cloth in zero gravity. No external forces — motion only comes from
- * user interaction, and heavy velocity damping makes it settle like it is
- * suspended in gel.
+ * Verlet cloth hung from two pegs on a line, the way a sheet is left out to
+ * dry: gravity pulls the slack into vertical folds, the top edge sags into a
+ * catenary between the pegs, and a low-frequency breeze keeps it breathing.
  */
 export class ClothSim {
   readonly cols: number;
@@ -45,8 +52,22 @@ export class ClothSim {
   /** 4-neighborhood for laplacian smoothing: -1 padded */
   private neighbors: Int32Array;
 
+  /** downward acceleration, world units/s² — 0 floats the cloth again */
+  gravity = 4.2;
+  /** breeze amplitude; 0 leaves the drape perfectly still */
+  wind = 1.6;
+
+  /** vertices held by the pegs, and where they are held */
+  private pins!: Int32Array;
+  private pinPos!: Float32Array;
+
   private grab: GrabState | null = null;
   private accumulator = 0;
+  private time = 0;
+  /** settling is deferred to the first step so a rebuild that gets replaced
+   *  in the same frame (aspect + perf profile both change at startup) pays
+   *  for the drape only once */
+  private pendingSettle = true;
 
   constructor(
     readonly width: number,
@@ -63,7 +84,9 @@ export class ClothSim {
 
     this.initPositions();
 
-    // Build constraints: structural (1.0), shear (0.85), bend (0.35)
+    // Build constraints: structural (1.0), shear (0.8), bend (0.1) — fabric
+    // is near-inextensible but bends almost freely, so the bend springs stay
+    // weak or the drape stiffens into sheet metal
     const a: number[] = [];
     const b: number[] = [];
     const mul: number[] = [];
@@ -73,11 +96,11 @@ export class ClothSim {
         if (x + 1 < this.cols) { a.push(idx(x, y)); b.push(idx(x + 1, y)); mul.push(1.0); }
         if (y + 1 < this.rows) { a.push(idx(x, y)); b.push(idx(x, y + 1)); mul.push(1.0); }
         if (x + 1 < this.cols && y + 1 < this.rows) {
-          a.push(idx(x, y)); b.push(idx(x + 1, y + 1)); mul.push(0.85);
-          a.push(idx(x + 1, y)); b.push(idx(x, y + 1)); mul.push(0.85);
+          a.push(idx(x, y)); b.push(idx(x + 1, y + 1)); mul.push(0.8);
+          a.push(idx(x + 1, y)); b.push(idx(x, y + 1)); mul.push(0.8);
         }
-        if (x + 2 < this.cols) { a.push(idx(x, y)); b.push(idx(x + 2, y)); mul.push(0.35); }
-        if (y + 2 < this.rows) { a.push(idx(x, y)); b.push(idx(x, y + 2)); mul.push(0.35); }
+        if (x + 2 < this.cols) { a.push(idx(x, y)); b.push(idx(x + 2, y)); mul.push(0.1); }
+        if (y + 2 < this.rows) { a.push(idx(x, y)); b.push(idx(x, y + 2)); mul.push(0.1); }
       }
     }
     this.cA = new Int32Array(a);
@@ -99,41 +122,89 @@ export class ClothSim {
   }
 
   /**
-   * Initial pose comes from a captured snapshot (BAKED_POSE): a
-   * hand-arranged drape sampled bilinearly onto this grid, scaled to this
-   * cloth's dimensions.
+   * Flat rectangle hanging in the XY plane, seeded with shallow vertical
+   * folds. The seed only breaks the symmetry — `settle()` turns it into a
+   * real drape by running the sim forward under gravity.
    */
   private initPositions() {
-    const bp = BAKED_POSE;
-    const bc = bp.cols;
-    const br = bp.rows;
-    const sx = this.width / bp.width;
-    const sy = this.height / bp.height;
-    const sz = (sx + sy) / 2;
+    const stepX = this.width / this.segX;
+    const stepY = this.height / this.segY;
     let k = 0;
     for (let y = 0; y < this.rows; y++) {
       for (let x = 0; x < this.cols; x++) {
-        const gu = (x / this.segX) * (bc - 1);
-        const gv = (y / this.segY) * (br - 1);
-        const x0 = Math.min(bc - 2, Math.floor(gu));
-        const y0 = Math.min(br - 2, Math.floor(gv));
-        const fx = gu - x0;
-        const fy = gv - y0;
-        for (let c = 0; c < 3; c++) {
-          const i00 = (y0 * bc + x0) * 3 + c;
-          const i10 = (y0 * bc + x0 + 1) * 3 + c;
-          const i01 = ((y0 + 1) * bc + x0) * 3 + c;
-          const i11 = ((y0 + 1) * bc + x0 + 1) * 3 + c;
-          const v0 = bp.data[i00] * (1 - fx) + bp.data[i10] * fx;
-          const v1 = bp.data[i01] * (1 - fx) + bp.data[i11] * fx;
-          const s = c === 0 ? sx : c === 1 ? sy : sz;
-          this.positions[k + c] = (v0 * (1 - fy) + v1 * fy) * s;
-        }
+        const u = x / this.segX;
+        const v = y / this.segY;
+        const fold = Math.sin(u * Math.PI * 3) * 0.6 + Math.sin(u * Math.PI * 5 + 0.9) * 0.3;
+        this.positions[k] = -this.width / 2 + x * stepX;
+        this.positions[k + 1] = this.height / 2 - y * stepY;
+        // folds open up away from the pegs, so nothing at the top row moves
+        this.positions[k + 2] = fold * 0.09 * Math.sin(v * Math.PI * 0.8);
         k += 3;
       }
     }
     this.prev.set(this.positions);
     this.rest.set(this.positions);
+    this.capturePins();
+  }
+
+  /**
+   * Two pegs near the top corners, each holding a couple of vertices so the
+   * fabric bunches at the peg instead of spiking from a single point.
+   */
+  private capturePins() {
+    const c0 = Math.max(1, Math.round(this.segX * PEG_INSET));
+    const c1 = Math.min(this.segX - 1, this.segX - c0);
+    // row 0 runs along the top edge, so vertex index === column index
+    const cols = [...new Set([c0, c0 + 1, c1 - 1, c1])]
+      .filter((c) => c >= 0 && c < this.cols)
+      .sort((a, b) => a - b);
+    this.pins = new Int32Array(cols);
+    this.pinPos = new Float32Array(cols.length * 3);
+    for (let i = 0; i < cols.length; i++) {
+      const p = cols[i] * 3;
+      this.pinPos[i * 3] = this.positions[p] * PEG_GATHER;
+      this.pinPos[i * 3 + 1] = this.positions[p + 1];
+      this.pinPos[i * 3 + 2] = this.positions[p + 2];
+    }
+  }
+
+  /** World-space center of each peg, for drawing the line and the clips. */
+  pegPoints(): THREE.Vector3[] {
+    const half = this.pins.length / 2;
+    const out: THREE.Vector3[] = [];
+    for (let g = 0; g < 2; g++) {
+      const v = new THREE.Vector3();
+      for (let i = g * half; i < (g + 1) * half; i++) {
+        v.x += this.pinPos[i * 3];
+        v.y += this.pinPos[i * 3 + 1];
+        v.z += this.pinPos[i * 3 + 2];
+      }
+      out.push(v.multiplyScalar(1 / half));
+    }
+    return out;
+  }
+
+  /**
+   * Fast-forward the sim so the cloth is already hanging on the first frame
+   * instead of dropping into place while the page loads. Wind is off — a
+   * settled drape, not a gust caught mid-flight.
+   *
+   * The fabric is near-inextensible, so its hanging shape barely depends on
+   * how hard gravity pulls: the first pass overdrives gravity to fall into
+   * the drape in a fraction of the steps, and the second relaxes the stretch
+   * that shortcut introduces back out at the real strength.
+   */
+  private settle() {
+    const drop: ClothPhysicsParams = {
+      viscosity: 0.4,
+      stiffness: 0.95,
+      iterations: 6,
+      smoothing: 0.02,
+    };
+    for (let i = 0; i < 80; i++) this.substep(drop, 0, 10);
+    const relax: ClothPhysicsParams = { ...drop, viscosity: 0.35, iterations: 12 };
+    for (let i = 0; i < 50; i++) this.substep(relax, 0, 1);
+    this.accumulator = 0;
   }
 
   private computeRestLengths() {
@@ -154,6 +225,8 @@ export class ClothSim {
   reset() {
     this.initPositions();
     this.grab = null;
+    this.settle();
+    this.pendingSettle = false;
   }
 
   /** Give a random gentle impulse — a "poke" from nowhere. */
@@ -268,6 +341,10 @@ export class ClothSim {
   }
 
   step(dt: number, params: ClothPhysicsParams) {
+    if (this.pendingSettle) {
+      this.pendingSettle = false;
+      this.settle();
+    }
     this.accumulator += Math.min(dt, 0.05);
     let steps = 0;
     while (this.accumulator >= SUBSTEP && steps < MAX_SUBSTEPS) {
@@ -278,21 +355,45 @@ export class ClothSim {
     if (steps === MAX_SUBSTEPS) this.accumulator = 0;
   }
 
-  private substep(params: ClothPhysicsParams) {
+  private substep(params: ClothPhysicsParams, windMul = 1, gravityMul = 1) {
     const p = this.positions;
     const prev = this.prev;
     const n = this.count;
+    this.time += SUBSTEP;
 
     // integrate: damping expressed per 60Hz-frame, converted to substep rate
     const damp = Math.pow(1 - Math.min(params.viscosity, 0.99), SUBSTEP * 60);
+    // verlet takes accelerations as position offsets: a * dt²
+    const dt2 = SUBSTEP * SUBSTEP;
+    const g = -this.gravity * gravityMul * dt2;
     for (let i = 0; i < n * 3; i++) {
       const cur = p[i];
       const vel = (cur - prev[i]) * damp;
       prev[i] = cur;
       p[i] = cur + vel;
     }
+    for (let i = 1; i < n * 3; i += 3) p[i] += g;
 
-    // laplacian smoothing — wrinkles relax back out, gel-like
+    // breeze: two slow travelling waves, mostly pushing the cloth off the
+    // plane (z) with a little lateral drift, gusting on a longer cycle
+    const windAmp = this.wind * dt2 * windMul;
+    if (windAmp > 0) {
+      const t = this.time;
+      const gust = 0.55 + 0.45 * Math.sin(t * 0.31);
+      for (let i = 0; i < n; i++) {
+        const x = p[i * 3];
+        const y = p[i * 3 + 1];
+        const w = Math.sin(t * 1.05 + y * 1.7 + x * 0.5) * 0.65 +
+                  Math.sin(t * 0.47 - x * 1.2 + 2.3) * 0.35;
+        const a = windAmp * gust * w;
+        p[i * 3 + 2] += a;
+        p[i * 3] += a * 0.3;
+      }
+    }
+    this.applyPins();
+
+    // laplacian smoothing — keeps grid-scale crinkle from accumulating,
+    // without ironing out the folds gravity puts in
     if (params.smoothing > 0) {
       const k = params.smoothing * 0.5;
       const nb = this.neighbors;
@@ -310,6 +411,7 @@ export class ClothSim {
         p[i * 3 + 1] += (ay * inv - p[i * 3 + 1]) * k;
         p[i * 3 + 2] += (az * inv - p[i * 3 + 2]) * k;
       }
+      this.applyPins();
     }
 
     // constraint relaxation
@@ -331,6 +433,18 @@ export class ClothSim {
         p[ib] -= ox; p[ib + 1] -= oy; p[ib + 2] -= oz;
       }
       this.applyGrab();
+      this.applyPins();
+    }
+  }
+
+  /** Pegs are immovable: whatever else happened, put those vertices back. */
+  private applyPins() {
+    const p = this.positions;
+    for (let k = 0; k < this.pins.length; k++) {
+      const i = this.pins[k] * 3;
+      p[i] = this.pinPos[k * 3];
+      p[i + 1] = this.pinPos[k * 3 + 1];
+      p[i + 2] = this.pinPos[k * 3 + 2];
     }
   }
 
