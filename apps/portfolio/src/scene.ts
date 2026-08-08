@@ -85,6 +85,8 @@ const TONE_MAPPINGS: Record<string, THREE.ToneMapping> = {
 
 const CLOTH_LONG_SIDE = 3.6;
 const CLOTH_SEGMENTS = 48;
+/** per-frame slice of the opening drape, while the cloth is still hidden */
+const SETTLE_BUDGET_MS = 8;
 const WHITE = new THREE.Color(0xffffff);
 // the drape hangs symmetrically about x=0 and sags below the line, so the
 // hero looks slightly down-frame at the cloth from a shallow 3/4 angle
@@ -144,12 +146,25 @@ const GrainShader = {
   `,
 };
 
+/**
+ * Bloom is a low-frequency effect by construction, so resolving it at half the
+ * framebuffer is invisible and skips three quarters of the blur's fragment
+ * work. EffectComposer sizes its passes in device pixels.
+ */
+class HalfResBloomPass extends UnrealBloomPass {
+  override setSize(width: number, height: number) {
+    super.setSize(Math.max(1, Math.round(width / 2)), Math.max(1, Math.round(height / 2)));
+  }
+}
+
 export class HoloApp {
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
   private controls!: OrbitControls;
   private composer: EffectComposer;
+  /** the one composer buffer the scene is rasterized into — see constructor */
+  private msaaTarget: THREE.WebGLRenderTarget;
   private bloomPass: UnrealBloomPass;
   private dofPass: MacroDofPass;
   private grainPass: ShaderPass;
@@ -187,6 +202,9 @@ export class HoloApp {
   private editMode = false;
   private prevUseImage = false;
   private hoverCursor = 'default';
+  /** the pointer moved since the last hover test — see tick() */
+  private hoverDirty = false;
+  private revealPending = false;
   private resizeObserver: ResizeObserver;
   private params: HoloParams | null = null;
   private disposed = false;
@@ -210,6 +228,10 @@ export class HoloApp {
     this.renderer.setSize(width, height);
     this.renderer.toneMapping = THREE.AgXToneMapping;
     this.renderer.toneMappingExposure = 1.1;
+    // A transmissive cloth makes three re-render the scene into a background
+    // buffer — with a full mip chain — every frame. Nothing survives a
+    // refracting sheet at full resolution, so halve it.
+    this.renderer.transmissionResolutionScale = 0.5;
     host.appendChild(this.renderer.domElement);
 
     this.scene = new THREE.Scene();
@@ -293,12 +315,20 @@ export class HoloApp {
       type: THREE.HalfFloatType,
     });
     this.composer = new EffectComposer(this.renderer, rt);
+    // EffectComposer clones that target for its ping-pong partner, but only the
+    // buffer the scene is rasterized into has geometry edges to antialias — the
+    // other one just receives full-screen post output, where multisampling is
+    // bandwidth and a resolve blit spent on nothing. RenderPass draws into
+    // readBuffer, which starts life as renderTarget2; tick() re-pins it every
+    // frame because toggling a pass (DOF) flips the swap parity.
+    this.msaaTarget = this.composer.renderTarget2;
+    this.composer.renderTarget1.samples = 0;
     this.composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.dofPass = new MacroDofPass(this.scene, this.camera);
     this.dofPass.enabled = false;
     this.composer.addPass(this.dofPass);
-    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 0.18, 0.85, 1.0);
+    this.bloomPass = new HalfResBloomPass(new THREE.Vector2(width / 2, height / 2), 0.18, 0.85, 1.0);
     this.composer.addPass(this.bloomPass);
     this.composer.addPass(new OutputPass());
     this.grainPass = new ShaderPass(GrainShader);
@@ -509,10 +539,13 @@ export class HoloApp {
     return this.surface.clothImage !== null;
   }
 
-  /** Show the cloth once the app's assets are in place. */
+  /**
+   * Show the cloth once the app's assets are in place — on the first frame
+   * where the opening drape has also finished settling, so it is never seen
+   * mid-fall.
+   */
   reveal() {
-    this.clothMesh.visible = true;
-    this.clothesline.visible = true;
+    this.revealPending = true;
   }
 
   /** Small data-URL preview of an image, cached per element. */
@@ -587,12 +620,10 @@ export class HoloApp {
     this.renderer.setPixelRatio(this.currentPR);
     this.renderer.setSize(w, h);
     this.composer.setPixelRatio(this.currentPR);
-    // MSAA sample count lives on the composer's ping-pong targets; force
-    // reallocation so the new count takes effect
-    this.composer.renderTarget1.samples = samples;
-    this.composer.renderTarget2.samples = samples;
-    this.composer.renderTarget1.dispose();
-    this.composer.renderTarget2.dispose();
+    // MSAA lives on the one target the scene is drawn into; force reallocation
+    // so the new count takes effect
+    this.msaaTarget.samples = samples;
+    this.msaaTarget.dispose();
     this.composer.setSize(w, h);
     if (segs !== this.clothSegments) {
       this.clothSegments = segs;
@@ -778,6 +809,7 @@ export class HoloApp {
     const active = this.grabbing || this.draggingDecal;
     if (active && e.pointerId !== this.grabPointerId) return;
     this.updatePointer(e);
+    this.hoverDirty = true;
     if (this.draggingDecal) {
       const hit = this.raycastCloth();
       const sel = this.surface.selected;
@@ -816,6 +848,8 @@ export class HoloApp {
   };
 
   private onWheel = (e: WheelEvent) => {
+    // zooming slides the cloth under a stationary cursor
+    this.hoverDirty = true;
     if (!this.editMode) return;
     const sel = this.surface.selected;
     if (!sel) return;
@@ -855,10 +889,27 @@ export class HoloApp {
     this.elapsed += dt;
     this.grainPass.uniforms.uTime.value = this.elapsed % 61.7;
 
+    // pin the multisampled buffer as the one RenderPass draws into: a pass
+    // switching its enabled flag mid-session changes how often buffers swap
+    if (this.composer.readBuffer !== this.msaaTarget) this.composer.swapBuffers();
+
     if (this.params) {
-      this.sim.step(dt, this.params.physics);
+      if (this.sim.isSettling && !this.clothMesh.visible) {
+        // The opening drape is a few hundred ms of constraint solving, and
+        // there is nothing on screen yet to spend it on — take it a slice at
+        // a time instead of freezing the page as it paints.
+        this.sim.settleWithin(SETTLE_BUDGET_MS);
+      } else {
+        this.sim.step(dt, this.params.physics);
+      }
       this.clothGeometry.attributes.position.needsUpdate = true;
       this.clothGeometry.computeVertexNormals();
+    }
+
+    if (this.revealPending && !this.sim.isSettling) {
+      this.revealPending = false;
+      this.clothMesh.visible = true;
+      this.clothesline.visible = true;
     }
 
     if (this.params?.render.occlusion) {
@@ -882,9 +933,12 @@ export class HoloApp {
       this.dofPass.setFocus(focusDist);
     }
 
-    // hover cursor feedback (skip while dragging/picking/panning; off on Low)
-    if (!this.grabbing && !this.draggingDecal && !this.pickingFocus && !this.spaceHeld &&
-        this.perfProfile !== 'Low') {
+    // hover cursor feedback (skip while dragging/picking/panning; off on Low).
+    // Only worth a raycast once the pointer has actually moved — the cloth
+    // drifts under a still cursor, but never far enough to change the answer.
+    if (this.hoverDirty && !this.grabbing && !this.draggingDecal && !this.pickingFocus &&
+        !this.spaceHeld && this.perfProfile !== 'Low') {
+      this.hoverDirty = false;
       const hit = this.raycastCloth();
       let cursor = 'default';
       if (hit) {

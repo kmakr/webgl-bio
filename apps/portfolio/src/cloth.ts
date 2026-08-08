@@ -21,6 +21,10 @@ interface GrabState {
 
 const SUBSTEP = 1 / 120;
 const MAX_SUBSTEPS = 4;
+/** substeps of the opening drape: an overdriven fall, then a relaxation pass */
+const SETTLE_DROP_STEPS = 80;
+const SETTLE_RELAX_STEPS = 50;
+const SETTLE_STEPS = SETTLE_DROP_STEPS + SETTLE_RELAX_STEPS;
 /** fraction of the top edge each peg sits in from its corner */
 const PEG_INSET = 0.1;
 /**
@@ -64,10 +68,10 @@ export class ClothSim {
   private grab: GrabState | null = null;
   private accumulator = 0;
   private time = 0;
-  /** settling is deferred to the first step so a rebuild that gets replaced
-   *  in the same frame (aspect + perf profile both change at startup) pays
-   *  for the drape only once */
-  private pendingSettle = true;
+  /** substeps of the opening drape already run. Settling is deferred to the
+   *  first step so a rebuild that gets replaced in the same frame (aspect +
+   *  perf profile both change at startup) pays for the drape only once */
+  private settleStep = 0;
 
   constructor(
     readonly width: number,
@@ -184,6 +188,11 @@ export class ClothSim {
     return out;
   }
 
+  /** True until the opening drape has finished falling into shape. */
+  get isSettling() {
+    return this.settleStep < SETTLE_STEPS;
+  }
+
   /**
    * Fast-forward the sim so the cloth is already hanging on the first frame
    * instead of dropping into place while the page loads. Wind is off — a
@@ -193,18 +202,27 @@ export class ClothSim {
    * how hard gravity pulls: the first pass overdrives gravity to fall into
    * the drape in a fraction of the steps, and the second relaxes the stretch
    * that shortcut introduces back out at the real strength.
+   *
+   * The full drape is a few hundred milliseconds of solving, so it is
+   * resumable: pass a millisecond budget to spread it across frames instead
+   * of blocking one, or Infinity to finish it here.
    */
-  private settle() {
+  settleWithin(budgetMs: number) {
+    if (!this.isSettling) return;
     const drop: ClothPhysicsParams = {
       viscosity: 0.4,
       stiffness: 0.95,
       iterations: 6,
       smoothing: 0.02,
     };
-    for (let i = 0; i < 80; i++) this.substep(drop, 0, 10);
     const relax: ClothPhysicsParams = { ...drop, viscosity: 0.35, iterations: 12 };
-    for (let i = 0; i < 50; i++) this.substep(relax, 0, 1);
-    this.accumulator = 0;
+    const deadline = performance.now() + budgetMs;
+    do {
+      if (this.settleStep < SETTLE_DROP_STEPS) this.substep(drop, 0, 10);
+      else this.substep(relax, 0, 1);
+      this.settleStep++;
+    } while (this.isSettling && performance.now() < deadline);
+    if (!this.isSettling) this.accumulator = 0;
   }
 
   private computeRestLengths() {
@@ -225,8 +243,8 @@ export class ClothSim {
   reset() {
     this.initPositions();
     this.grab = null;
-    this.settle();
-    this.pendingSettle = false;
+    this.settleStep = 0;
+    this.settleWithin(Infinity);
   }
 
   /** Give a random gentle impulse — a "poke" from nowhere. */
@@ -341,10 +359,8 @@ export class ClothSim {
   }
 
   step(dt: number, params: ClothPhysicsParams) {
-    if (this.pendingSettle) {
-      this.pendingSettle = false;
-      this.settle();
-    }
+    // a caller that has not budgeted for the drape gets all of it at once
+    if (this.isSettling) this.settleWithin(Infinity);
     this.accumulator += Math.min(dt, 0.05);
     let steps = 0;
     while (this.accumulator >= SUBSTEP && steps < MAX_SUBSTEPS) {
