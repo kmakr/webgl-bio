@@ -82,7 +82,12 @@ const TAPE_PARAMS: HoloParams = {
     coatRoughness: 0.025,
     sheen: 0,
     transmission: 0.97,
-    thickness: 0.24,
+    // Tape is a film, not a block of glass. thickness sets how far the
+    // refracted ray is displaced, and three draws the sheet's far face into
+    // the transmission background when a transmissive material is
+    // double-sided — so anything but a hair's breadth here prints the artwork
+    // a second time, offset, visible as a ghost layer from behind.
+    thickness: 0.02,
     ior: 1.46,
     opacity: 1,
     bump: 0.32,
