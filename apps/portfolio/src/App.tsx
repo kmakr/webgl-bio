@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { HoloApp, type HoloParams } from './scene.ts';
 
-const STATIC_QUOTE = 'Useful things do not need to shout.';
 const A4_LANDSCAPE_ASPECT = Math.SQRT2;
 
 type MaterialVersion =
@@ -298,9 +297,11 @@ export default function App() {
 
     const request = ++textureRequestRef.current;
     const renderPrint = async () => {
+      // both faces must be resident before drawing: the tiling step below is
+      // derived from measureText, which reports fallback metrics until then
       await Promise.all([
         document.fonts.load('600 190px "IBM Plex Mono"'),
-        document.fonts.load('400 28px "IBM Plex Mono"'),
+        document.fonts.load('400 17px "IBM Plex Mono"'),
       ]);
       if (textureRequestRef.current !== request || appRef.current !== app) return;
 
@@ -338,9 +339,6 @@ export default function App() {
       ctx.font = '600 190px "IBM Plex Mono", monospace';
       ctx.fillText('theo', printLeft, 340);
       ctx.fillText('azriel', printLeft, 550);
-
-      ctx.font = '400 28px "IBM Plex Mono", monospace';
-      ctx.fillText(`“${STATIC_QUOTE.toLowerCase()}”`, printLeft, 770, 1120);
 
       drawBarcode(ctx, printLeft, 890, 430, 70, '260419920104', inkColor);
 
