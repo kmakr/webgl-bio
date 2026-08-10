@@ -356,73 +356,25 @@ export default function App() {
     void renderPrint();
   }, [materialVersion]);
 
-  const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <main className="site is-portfolio" aria-label="Theo Azriel personal site">
       <div id="canvas-host" ref={hostRef} aria-hidden="true" />
 
       <header className="portfolio-header">
         <span className="wordmark">Theo Azriel</span>
-        <nav className="section-nav" aria-label="Page sections">
-          <button type="button" onClick={() => scrollToSection('work')}>Work</button>
-          <button type="button" onClick={() => scrollToSection('about')}>About</button>
+        <nav className="section-nav" aria-label="Site links">
           <a href="https://notes.theoazriel.com">Notes</a>
-          <button type="button" onClick={() => scrollToSection('contact')}>Contact</button>
         </nav>
       </header>
 
       <section className="portfolio-hero" ref={heroRef} aria-labelledby="portfolio-title">
-            <h1 id="portfolio-title" className="sr-only">Theo Azriel</h1>
-            <div className="hero-caption" aria-hidden="true">
-              <p>Designer + engineer</p>
-              <p>Interfaces / systems / experiments</p>
-            </div>
-            <button className="scroll-cue" type="button" onClick={() => scrollToSection('work')}>
-              View work <span aria-hidden="true">↓</span>
-            </button>
-          </section>
-
-          <section className="content-section work-section" id="work" aria-labelledby="work-title">
-            <header className="section-heading">
-              <h2 id="work-title">Selected work</h2>
-              <p>2024—Now</p>
-            </header>
-            <div className="work-list">
-              <article className="work-row">
-                <h3>Interface systems</h3>
-                <p>Product design + engineering</p>
-                <p>Ongoing</p>
-              </article>
-              <article className="work-row">
-                <h3>Applied experiments</h3>
-                <p>Prototypes + research</p>
-                <p>Archive</p>
-              </article>
-            </div>
-          </section>
-
-          <section className="content-section about-section" id="about" aria-labelledby="about-title">
-            <div className="section-heading">
-              <h2 id="about-title">About</h2>
-              <p>Hong Kong</p>
-            </div>
-            <p className="about-copy">
-              I design and build interfaces, tools, and systems. My work connects product design,
-              software engineering, and focused experiments.
-            </p>
-          </section>
-
-          <footer className="content-section contact-section" id="contact">
-            <p>Start a conversation</p>
-            <a href="mailto:theo.azriel@icloud.com">theo.azriel@icloud.com</a>
-            <div className="footer-line">
-              <span>Theo Azriel</span>
-              <span>© 2026</span>
-            </div>
-          </footer>
+        <h1 id="portfolio-title" className="sr-only">Theo Azriel</h1>
+        <div className="hero-caption" aria-hidden="true">
+          <p>Designer + engineer</p>
+          <p>Interfaces / systems / experiments</p>
+        </div>
+        <a className="hero-email" href="mailto:theo.azriel@icloud.com">theo.azriel@icloud.com</a>
+      </section>
     </main>
   );
 }
