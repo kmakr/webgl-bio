@@ -91,7 +91,6 @@ a {
   gap: 18px;
 }
 
-.section-nav button,
 .section-nav a {
   padding: 0;
   border: 0;
@@ -102,13 +101,11 @@ a {
   cursor: pointer;
 }
 
-.section-nav button:hover,
 .section-nav a:hover,
 .hero-email:hover {
   color: #777;
 }
 
-.section-nav button:focus-visible,
 .section-nav a:focus-visible,
 .hero-email:focus-visible {
   outline: 1px solid #090909;
