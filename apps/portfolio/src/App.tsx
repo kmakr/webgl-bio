@@ -9,8 +9,52 @@ type MaterialVersion =
   | 'holo'
   | 'black';
 
+/**
+ * Pick a quality profile from what the device tells us about itself.
+ *
+ * Without this every visitor got 'High' — DPR 2, 8x MSAA, and a 48-segment
+ * cloth — because nothing ever wrote to `performance`. The hero's two costs
+ * pull in different directions, so both are worth reading:
+ *
+ *  - the cloth solver is single-threaded JS, and its constraint count grows
+ *    with the square of the segment count (48 -> 28 segments is ~9.9k -> 3.4k
+ *    constraints), so core count and memory matter;
+ *  - the material is transmissive with a heavy fragment shader, so cost also
+ *    tracks the pixels actually rasterized — DPR² × viewport.
+ *
+ * Deliberately conservative: it only steps down on clear evidence, since a
+ * wrong guess costs visible fold detail and sharpness. `deviceMemory` is
+ * Chromium-only and `hardwareConcurrency` can be absent, so both fall back to
+ * values that keep a device at 'High' rather than punishing it for being
+ * unmeasurable.
+ */
+function detectPerformanceProfile(): string {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return 'High';
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const cores = nav.hardwareConcurrency || 8;
+  const memoryGB = nav.deviceMemory ?? 8;
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const pixels = window.innerWidth * window.innerHeight * dpr * dpr;
+
+  // Phones and tablets. Medium rather than Low for anything current: with the
+  // render costs cut, the profiles' DPR and MSAA steps are worth ~0.15ms here
+  // while the segment count is worth milliseconds, and Medium already takes
+  // the solver from 9.9k constraints to 5.5k. Low additionally drops to DPR 1
+  // with no MSAA, which is a visibly soft, jagged hero — worth it only on a
+  // device that genuinely cannot keep up.
+  if (coarsePointer) return cores <= 4 || memoryGB <= 4 ? 'Low' : 'Medium';
+  if (cores <= 4 || memoryGB <= 4) return 'Medium';
+  // A retina panel at full screen is fill-bound even on capable hardware:
+  // ~6.5M pixels is where a 1728x1080 DPR-2 window lands.
+  if (pixels > 6.5e6) return 'Medium';
+  return 'High';
+}
+
+const PERFORMANCE_PROFILE = detectPerformanceProfile();
+
 const SILVER_PARAMS: HoloParams = {
-  performance: 'High',
+  performance: PERFORMANCE_PROFILE,
   physics: {
     // light air drag, not gel — the drape has to keep swinging on the line
     viscosity: 0.09,
