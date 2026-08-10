@@ -1,0 +1,43 @@
+name: Deploy notes
+
+# notes.theoazriel.com. This is also the publish step for writing: a note
+# committed to main — from an editor, the GitHub web UI, or a phone — goes
+# live without anyone running wrangler by hand.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/notes/**'
+      - 'package-lock.json'
+      - '.github/workflows/deploy-notes.yml'
+      - '.nvmrc'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-notes
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # astro check && astro build — a malformed note's frontmatter fails the
+      # content-collection schema here rather than shipping a broken page
+      - run: npm run build:notes
+
+      - run: npm run deploy:notes
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
