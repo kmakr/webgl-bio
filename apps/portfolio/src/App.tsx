@@ -15,7 +15,10 @@ const SILVER_PARAMS: HoloParams = {
     // light air drag, not gel — the drape has to keep swinging on the line
     viscosity: 0.09,
     stiffness: 0.96,
-    iterations: 14,
+    // Gauss-Seidel relaxation converges fast at this stiffness: the last
+    // iterations were spending a full pass over every constraint to move
+    // vertices by amounts too small to see. 8 holds the same drape.
+    iterations: 8,
     smoothing: 0.02,
     grabRadius: 0.32,
   },

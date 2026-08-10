@@ -90,7 +90,13 @@ export class ClothSim {
 
     // Build constraints: structural (1.0), shear (0.8), bend (0.1) — fabric
     // is near-inextensible but bends almost freely, so the bend springs stay
-    // weak or the drape stiffens into sheet metal
+    // weak or the drape stiffens into sheet metal.
+    //
+    // Weak is not the same as removable: they are a third of the constraints
+    // and, being distance pairs like the rest, they carry load. Dropping them
+    // takes the worst stretch from 15% to 21% at the same iteration count,
+    // and clawing that back needs ~20 iterations — which costs more than
+    // keeping them. Measured; do not "optimize" them away again.
     const a: number[] = [];
     const b: number[] = [];
     const mul: number[] = [];
