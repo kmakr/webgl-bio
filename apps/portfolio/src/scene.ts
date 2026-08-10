@@ -92,6 +92,8 @@ const WHITE = new THREE.Color(0xffffff);
 // hero looks slightly down-frame at the cloth from a shallow 3/4 angle
 const HERO_CAMERA = [0.86, 0.72, 4.4] as const;
 const HERO_TARGET = [0, -0.14, 0] as const;
+/** how far the line bows between the two clips, world units */
+const WIRE_SAG = 0.045;
 
 function makeColorBackdropTexture() {
   const canvas = document.createElement('canvas');
@@ -260,6 +262,11 @@ export class HoloApp {
     rimB.position.set(4.5, -1.5, -2.5);
     const key = new THREE.DirectionalLight(0xffffff, 0.7);
     key.position.set(1.5, 3, 4);
+    // Deliberately no shadow map. The cloth is ~97% transmissive, and three
+    // builds the transmission backdrop from opaque geometry only — so a
+    // shadow can never show *through* the sheet you can see through, which
+    // is the one place it would need to appear. It also meant re-rendering
+    // a full shadow pass every frame, since the cloth deforms every frame.
     this.scene.add(rimA, rimB, key);
 
     // surface layer (uploaded graphics) + cloth
@@ -384,13 +391,27 @@ export class HoloApp {
     this.clothesline.clear();
 
     const pegs = this.sim.pegPoints();
-    // long enough to run out of frame at any orbit distance we allow
+    const span = Math.abs(pegs[1].x - pegs[0].x) / 2;
+    const y0 = pegs[0].y;
+
+    // A taut wire would be the one thing in frame that gravity ignores, so it
+    // bows under the load it carries: cos² dips it between the clips and
+    // arrives flat and level at each one (zero slope there), which is what a
+    // line reads as when its poles are far outside the frame.
+    const sag = (x: number) => {
+      if (Math.abs(x) >= span) return y0;
+      return y0 - WIRE_SAG * Math.cos((Math.PI * x) / (2 * span)) ** 2;
+    };
+    const points: THREE.Vector3[] = [];
+    for (let i = 0; i <= 96; i++) {
+      // long enough to run out of frame at any orbit distance we allow
+      const x = -30 + (60 * i) / 96;
+      points.push(new THREE.Vector3(x, sag(x), pegs[0].z));
+    }
     const wire = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.008, 0.008, 60, 8),
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 96, 0.008, 6, false),
       this.lineMaterial,
     );
-    wire.rotation.z = Math.PI / 2;
-    wire.position.set(0, pegs[0].y, pegs[0].z);
     wire.frustumCulled = false;
     this.clothesline.add(wire);
 
@@ -400,7 +421,7 @@ export class HoloApp {
         this.clipMaterial,
       );
       // sits just in front of the fabric, straddling the wire
-      clip.position.set(peg.x, peg.y + 0.028, peg.z + 0.028);
+      clip.position.set(peg.x, sag(peg.x) + 0.028, peg.z + 0.028);
       this.clothesline.add(clip);
     }
   }
