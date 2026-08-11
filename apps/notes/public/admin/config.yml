@@ -40,3 +40,7 @@ collections:
         widget: boolean
         default: false
         hint: 'Drafts are committed to the repo but never published to the site.'
+      # `body` is the one reserved field name: it is not frontmatter, it IS
+      # the Markdown below the --- fence. Omit it and the CMS shows no
+      # content editor at all — every other field still saves fine.
+      - { label: Body, name: body, widget: markdown }
