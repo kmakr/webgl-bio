@@ -1,8 +1,9 @@
 ---
-title: "Clear tape is a surface"
+title: This is a sample post
 date: 2026-08-05
-summary: "A short record of the material study behind this site."
-tags: ["design", "webgl"]
+summary: A short record of the material study behind this site.
+tags:
+  - test
 draft: false
 ---
 
