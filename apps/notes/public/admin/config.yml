@@ -1,0 +1,42 @@
+# Sveltia CMS configuration for the notes blog.
+#
+# The fields below mirror the schema in apps/notes/src/content.config.ts —
+# if you change one, change the other, or the build will reject what the
+# CMS writes (that rejection is the safety net, not a bug).
+
+backend:
+  name: github
+  repo: kmakr/personal
+  branch: main
+  # the cms-auth Worker that completes GitHub's login handshake
+  base_url: https://theo-cms-auth.theoazrie.workers.dev
+
+# where uploaded images land in the repo, and the URL they get on the site
+media_folder: apps/notes/public/images
+public_folder: /images
+
+collections:
+  - name: notes
+    label: Notes
+    folder: apps/notes/src/content/notes
+    create: true
+    extension: md
+    slug: '{{slug}}'
+    fields:
+      - { label: Title, name: title, widget: string }
+      - label: Date
+        name: date
+        widget: datetime
+        format: 'YYYY-MM-DD'
+        time_format: false
+      - { label: Summary, name: summary, widget: string }
+      - label: Tags
+        name: tags
+        widget: list
+        required: false
+        default: []
+      - label: Draft
+        name: draft
+        widget: boolean
+        default: false
+        hint: 'Drafts are committed to the repo but never published to the site.'

@@ -1,0 +1,20 @@
+# GitHub OAuth relay for the notes CMS — see src/index.js for what and why.
+#
+# Unlike the other two Workers this one has a `main`: it runs code. It serves
+# no files and has no custom domain; the CMS reaches it on its workers.dev URL.
+#
+# Configuration lives in two places:
+#   GITHUB_CLIENT_ID     — public identifier, plain var below
+#   GITHUB_CLIENT_SECRET — real secret, stored at Cloudflare, never in git:
+#                          npx wrangler secret put GITHUB_CLIENT_SECRET
+
+name = "theo-cms-auth"
+main = "src/index.js"
+compatibility_date = "2026-08-11"
+workers_dev = true
+
+[vars]
+# from the GitHub OAuth app "notes.theoazriel.com" (github.com → Settings →
+# Developer settings). This is the app's public identifier, not a secret —
+# the secret half never enters git: wrangler secret put GITHUB_CLIENT_SECRET
+GITHUB_CLIENT_ID = "Ov23ctPO0EsCTfeji3Vp"

@@ -1,0 +1,40 @@
+name: Deploy cms-auth
+
+# The GitHub OAuth relay Worker behind the notes CMS login. Same shape as the
+# other two deploy workflows, minus a build step — it's a single JS file with
+# nothing to compile. Its GITHUB_CLIENT_SECRET lives at Cloudflare and is
+# untouched by deploys.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/cms-auth/**'
+      - 'package-lock.json'
+      - '.github/workflows/deploy-cms-auth.yml'
+      - '.nvmrc'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-cms-auth
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run deploy:cms-auth
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

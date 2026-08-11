@@ -12,6 +12,7 @@
     "dev:portfolio": "npm run dev --workspace @theo/portfolio",
     "dev:notes": "npm run dev --workspace @theo/notes",
     "deploy:portfolio": "npm run deploy --workspace @theo/portfolio",
-    "deploy:notes": "npm run deploy --workspace @theo/notes"
+    "deploy:notes": "npm run deploy --workspace @theo/notes",
+    "deploy:cms-auth": "npm run deploy --workspace @theo/cms-auth"
   }
 }
