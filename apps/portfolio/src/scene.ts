@@ -633,11 +633,22 @@ export class HoloApp {
   private applyPerfProfile(profile: string) {
     this.perfProfile = profile;
     const dpr = window.devicePixelRatio;
-    this.currentPR = profile === 'Low' ? 1 : profile === 'Medium' ? Math.min(dpr, 1.5) : Math.min(dpr, 2);
-    const samples = profile === 'Low' ? 0 : profile === 'Medium' ? 4 : 8;
-    const segs = profile === 'Low' ? 28 : profile === 'Medium' ? 36 : 48;
     const w = this.host.clientWidth || window.innerWidth;
     const h = this.host.clientHeight || window.innerHeight;
+    // Render scale is a pixel budget, not a flat DPR cap. A cap tuned for
+    // desktops (where DPR² × a large viewport explodes) also throttled
+    // phones, where the viewport is so small that even native DPR 3 costs
+    // ~3MP — half of a desktop High — while the 3x panel makes the resulting
+    // upscale blur most visible. Budget instead: render at native DPR until
+    // that would exceed the profile's device-pixel allowance, then scale
+    // down to fit it.
+    const budget = profile === 'Low' ? 1.6e6 : profile === 'Medium' ? 3.6e6 : 7.2e6;
+    const fit = Math.sqrt(budget / (w * h));
+    // floored at 1: never render below CSS resolution — a 4K DPR-1 desktop
+    // over budget gets the old full-res behavior, not fresh blur
+    this.currentPR = Math.max(1, Math.min(dpr, 3, fit));
+    const samples = profile === 'Low' ? 0 : profile === 'Medium' ? 4 : 8;
+    const segs = profile === 'Low' ? 28 : profile === 'Medium' ? 36 : 48;
     this.renderer.setPixelRatio(this.currentPR);
     this.renderer.setSize(w, h);
     this.composer.setPixelRatio(this.currentPR);
