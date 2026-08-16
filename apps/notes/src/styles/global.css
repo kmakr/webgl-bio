@@ -91,6 +91,14 @@ hr {
 
 img {
   max-width: 100%;
+  /* keep the aspect ratio when Markdown supplies a width attribute */
+  height: auto;
+}
+
+.draft-banner {
+  padding: 8px 12px;
+  border: 1px dashed;
+  font-style: italic;
 }
 
 code {

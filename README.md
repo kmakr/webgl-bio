@@ -29,9 +29,11 @@ npm run build
 ## Publish a note
 
 1. Add a Markdown file to `apps/notes/src/content/notes`.
-2. Set `draft: false` in its frontmatter.
-3. Commit and push the file.
-4. Cloudflare builds and deploys the notes site.
+2. While `draft: true`, the note renders only at the unlisted, noindex
+   `notes.theoazriel.com/drafts/<slug>` for proofreading.
+3. Set `draft: false` in its frontmatter.
+4. Commit and push the file.
+5. Cloudflare builds and deploys the notes site.
 
 ## Deploy
 
