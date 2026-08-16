@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+
+const notes = (await getCollection('notes', ({ data }) => data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const formatDate = (date: Date) => new Intl.DateTimeFormat('en-GB', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+}).format(date).replace(/ (\d{4})$/, ', $1');
+---
+
+<BaseLayout title="Drafts — Theo Azriel" noindex>
+  <SiteHeader />
+  <main>
+    <h2 id="page-title">Drafts</h2>
+    <p>Unpublished notes. This page is unlisted and hidden from search engines.</p>
+    {notes.length === 0 && <p>No drafts right now.</p>}
+    <ul class="blog-posts" aria-label="Draft notes">
+      {notes.map((note) => (
+        <li>
+          <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
+          <a href={`/drafts/${note.id}`}>{note.data.title}</a>
+        </li>
+      ))}
+    </ul>
+  </main>
+</BaseLayout>

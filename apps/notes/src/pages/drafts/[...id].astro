@@ -1,0 +1,19 @@
+---
+import { getCollection, render } from 'astro:content';
+import NoteLayout from '../../layouts/NoteLayout.astro';
+
+// The mirror image of /notes/[...id]: only drafts build here. A note is
+// reachable at exactly one of the two URLs, so flipping `draft` moves it
+// rather than duplicating it.
+export async function getStaticPaths() {
+  const notes = await getCollection('notes', ({ data }) => data.draft);
+  return notes.map((note) => ({ params: { id: note.id }, props: { note } }));
+}
+
+const { note } = Astro.props;
+const { Content } = await render(note);
+---
+
+<NoteLayout {...note.data}>
+  <Content />
+</NoteLayout>
