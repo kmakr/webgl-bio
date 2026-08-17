@@ -15,19 +15,19 @@ const notes = (await getCollection('notes', ({ data }) => !data.draft))
 
     <section aria-label="Gallery">
       <h2>Gallery</h2>
-      <p>
-        <a href="https://gallery.theoazriel.com">gallery.theoazriel.com</a><br />
+      <a class="item" href="https://gallery.theoazriel.com">
+        <span>gallery.theoazriel.com</span>
         <span class="muted">Photographs draped over a simulated cloth. Drag it.</span>
-      </p>
+      </a>
     </section>
 
     <section aria-label="Notes">
       <h2>Notes</h2>
       {notes.map((note) => (
-        <p>
-          <a href={`/notes/${note.id}`}>{note.data.title}</a><br />
+        <a class="item" href={`/notes/${note.id}`}>
+          <span>{note.data.title}</span>
           <span class="muted">{note.data.summary}</span>
-        </p>
+        </a>
       ))}
     </section>
 
