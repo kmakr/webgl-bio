@@ -1,12 +1,26 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { HoloApp, type HoloParams } from './scene.ts';
-
-const A4_LANDSCAPE_ASPECT = Math.SQRT2;
 
 type MaterialVersion =
   | 'tape'
+  | 'silver'
   | 'holo'
   | 'black';
+
+/**
+ * The photographs, in filename order. Drop image files (jpg/png/webp — the
+ * SVGs are placeholders) into src/photos/ and they join the gallery on the
+ * next build; each drapes onto the cloth at its own aspect ratio.
+ */
+const PHOTOS = Object.entries(
+  import.meta.glob('./photos/*.{jpg,jpeg,png,webp,avif,svg}', {
+    eager: true,
+    query: '?url',
+    import: 'default',
+  }),
+)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, url]) => url as string);
 
 /**
  * Pick a quality profile from what the device tells us about itself.
@@ -91,7 +105,7 @@ const SILVER_PARAMS: HoloParams = {
   },
   images: {
     edit: false,
-    useImage: false,
+    useImage: true,
     scale: 0.92,
     rotation: 0,
     opacity: 1,
@@ -208,53 +222,31 @@ const BLACK_CHROME_PARAMS: HoloParams = {
 };
 
 const paramsFor = (version: MaterialVersion) => {
+  if (version === 'silver') return SILVER_PARAMS;
   if (version === 'holo') return HOLO_PARAMS;
   if (version === 'black') return BLACK_CHROME_PARAMS;
   return TAPE_PARAMS;
 };
 
-function drawBarcode(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  code: string,
-  color: string,
-) {
-  const bits = `1101001${[...code]
-    .map((digit, index) => {
-      const value = Number(digit) + index * 3;
-      return value.toString(2).padStart(5, '0') + '10';
-    })
-    .join('')}1100011`;
-  const barWidth = width / bits.length;
-
-  ctx.save();
-  ctx.fillStyle = color;
-  for (let index = 0; index < bits.length; index += 1) {
-    if (bits[index] === '1') ctx.fillRect(x + index * barWidth, y, barWidth + 0.65, height);
-  }
-  ctx.font = '400 17px "IBM Plex Mono", monospace';
-  ctx.letterSpacing = '0px';
-  ctx.fillText(code, x, y + height + 30);
-  ctx.restore();
-}
+const versionFromHash = (): MaterialVersion => {
+  const h = window.location.hash.replace('#', '');
+  return h === 'silver' || h === 'holo' || h === 'black' ? h : 'tape';
+};
 
 export default function App() {
   const hostRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const appRef = useRef<HoloApp | null>(null);
-  const textureRequestRef = useRef(0);
-  const materialVersion: MaterialVersion = 'tape';
+  const photoRequestRef = useRef(0);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [materialVersion, setMaterialVersion] = useState<MaterialVersion>(versionFromHash);
 
   useEffect(() => {
     if (!hostRef.current) return;
 
     const app = new HoloApp(hostRef.current);
     appRef.current = app;
-    app.setClothAspect(A4_LANDSCAPE_ASPECT);
-    app.applyParams(paramsFor(materialVersion));
+    app.applyParams(paramsFor(versionFromHash()));
     app.reveal();
 
     const bump = new Image();
@@ -268,10 +260,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const onHashChange = () => setMaterialVersion(versionFromHash());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
     appRef.current?.applyParams(paramsFor(materialVersion));
     document.body.classList.add('portfolio-open');
-    history.replaceState(null, '', `#${materialVersion}`);
-
     return () => document.body.classList.remove('portfolio-open');
   }, [materialVersion]);
 
@@ -291,87 +287,71 @@ export default function App() {
     };
   }, []);
 
+  // drape the current photograph onto the cloth
   useEffect(() => {
     const app = appRef.current;
-    if (!app) return;
+    const url = PHOTOS[photoIndex];
+    if (!app || !url) return;
 
-    const request = ++textureRequestRef.current;
-    const renderPrint = async () => {
-      // both faces must be resident before drawing: the tiling step below is
-      // derived from measureText, which reports fallback metrics until then
-      await Promise.all([
-        document.fonts.load('600 190px "IBM Plex Mono"'),
-        document.fonts.load('400 17px "IBM Plex Mono"'),
-      ]);
-      if (textureRequestRef.current !== request || appRef.current !== app) return;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = 1754;
-      canvas.height = 1240;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const inkColor = paramsFor(materialVersion).material.preset === 'Black Chrome'
-        ? '#f5f5f1'
-        : '#050505';
-      ctx.fillStyle = inkColor;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'alphabetic';
-      ctx.letterSpacing = '0px';
-      const printLeft = 150;
-
-      ctx.save();
-      ctx.globalAlpha = 0.54;
-      ctx.font = '400 17px "IBM Plex Mono", monospace';
-      // step from the measured string, not a magic number: at 17px the run is
-      // ~337px wide, so a fixed 330 step ran each repetition into the next
-      const runText = 'theo azriel / authentic / 26041992';
-      const runStep = ctx.measureText(runText).width + 26;
-      for (let y = 70; y < canvas.height; y += 58) {
-        const offset = (Math.floor(y / 58) % 2) * (runStep / 2.5);
-        for (let x = 42; x < canvas.width + runStep; x += runStep) {
-          ctx.fillText(runText, x - offset, y);
-        }
-      }
-      ctx.restore();
-
-      ctx.font = '600 190px "IBM Plex Mono", monospace';
-      ctx.fillText('theo', printLeft, 340);
-      ctx.fillText('azriel', printLeft, 550);
-
-      drawBarcode(ctx, printLeft, 890, 430, 70, '260419920104', inkColor);
-
-      const image = new Image();
-      image.onload = () => {
-        if (textureRequestRef.current !== request || appRef.current !== app) return;
-        if (app.getDecalThumbnails().length > 0) app.removeDecal(0);
-        app.addDecal(image);
-        app.applyParams(paramsFor(materialVersion));
-      };
-      image.src = canvas.toDataURL('image/png');
+    const request = ++photoRequestRef.current;
+    const image = new Image();
+    image.onload = () => {
+      if (photoRequestRef.current !== request || appRef.current !== app) return;
+      app.setClothImage(image);
+      // a fresh sheet for each photograph — re-run the opening drape
+      app.resetCloth();
+      app.applyParams(paramsFor(materialVersion));
     };
-    void renderPrint();
-  }, [materialVersion]);
+    image.src = url;
+    // materialVersion is read but deliberately not a dependency: a material
+    // switch re-applies params itself and must not re-drop the cloth
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoIndex]);
+
+  const step = useCallback((delta: number) => {
+    if (PHOTOS.length < 2) return;
+    setPhotoIndex((i) => (i + delta + PHOTOS.length) % PHOTOS.length);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowLeft') step(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [step]);
+
+  const counter = `${String(photoIndex + 1).padStart(2, '0')} / ${String(PHOTOS.length).padStart(2, '0')}`;
 
   return (
-    <main className="site is-portfolio" aria-label="Theo Azriel personal site">
+    <main className="site is-portfolio" aria-label="Theo Azriel — photographs">
       <div id="canvas-host" ref={hostRef} aria-hidden="true" />
 
       <header className="portfolio-header">
-        <span className="wordmark">Theo Azriel</span>
+        <a className="wordmark" href="https://theoazriel.com">Theo Azriel</a>
         <nav className="section-nav" aria-label="Site links">
-          <a href="https://notes.theoazriel.com">Notes</a>
+          <a href="https://theoazriel.com">Home</a>
         </nav>
       </header>
 
       <section className="portfolio-hero" ref={heroRef} aria-labelledby="portfolio-title">
-        <h1 id="portfolio-title" className="sr-only">Theo Azriel</h1>
+        <h1 id="portfolio-title" className="sr-only">Photographs by Theo Azriel</h1>
         <div className="hero-caption" aria-hidden="true">
-          <p>Designer + engineer</p>
-          <p>Interfaces / systems / experiments</p>
+          <p>Photographs</p>
+          <p>Drag the cloth</p>
         </div>
-        <a className="hero-email" href="mailto:theo.azriel@icloud.com">theo.azriel@icloud.com</a>
+        {PHOTOS.length > 1 && (
+          <div className="gallery-nav">
+            <button type="button" aria-label="Previous photograph" onClick={() => step(-1)}>
+              ←
+            </button>
+            <span className="gallery-counter" aria-live="polite">{counter}</span>
+            <button type="button" aria-label="Next photograph" onClick={() => step(1)}>
+              →
+            </button>
+          </div>
+        )}
       </section>
     </main>
   );

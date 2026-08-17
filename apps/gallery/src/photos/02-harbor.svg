@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <!-- placeholder photograph: replace with a real image file -->
+  <defs>
+    <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a3441"/>
+      <stop offset="0.55" stop-color="#54626f"/>
+      <stop offset="0.62" stop-color="#8c8f88"/>
+      <stop offset="1" stop-color="#1d242c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1500" fill="url(#dusk)"/>
+  <rect x="0" y="930" width="1200" height="570" fill="#141a20"/>
+  <rect x="180" y="560" width="14" height="370" fill="#0c1014"/>
+  <rect x="640" y="480" width="10" height="450" fill="#0c1014"/>
+  <rect x="980" y="620" width="12" height="310" fill="#0c1014"/>
+  <circle cx="600" cy="330" r="46" fill="#e8e2d2" opacity="0.85"/>
+  <rect x="0" y="915" width="1200" height="18" fill="#a7a294" opacity="0.5"/>
+  <text x="52" y="1440" font-family="monospace" font-size="34" fill="#e8e2d2" opacity="0.6">placeholder 02 — 4:5</text>
+</svg>

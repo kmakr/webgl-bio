@@ -101,13 +101,20 @@ a {
   cursor: pointer;
 }
 
+.wordmark {
+  color: inherit;
+  text-decoration: none;
+}
+
 .section-nav a:hover,
-.hero-email:hover {
+.wordmark:hover,
+.gallery-nav button:hover {
   color: #777;
 }
 
 .section-nav a:focus-visible,
-.hero-email:focus-visible {
+.wordmark:focus-visible,
+.gallery-nav button:focus-visible {
   outline: 1px solid #090909;
   outline-offset: 4px;
 }
@@ -121,7 +128,7 @@ a {
 }
 
 .hero-caption,
-.hero-email {
+.gallery-nav {
   position: absolute;
   bottom: 20px;
   z-index: 4;
@@ -140,16 +147,29 @@ a {
   margin: 0;
 }
 
-/* the only call to action left on the page, so it keeps an underline the
-   nav links do without — sized to sit opposite the caption, not compete
-   with the cloth */
-.hero-email {
+/* photograph pager, sitting opposite the caption */
+.gallery-nav {
   right: 19px;
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
   pointer-events: auto;
+}
+
+.gallery-nav button {
+  padding: 6px 4px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gallery-counter {
+  min-width: 58px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .sr-only {
@@ -180,7 +200,7 @@ a {
   }
 
   .hero-caption,
-  .hero-email {
+  .gallery-nav {
     position: static;
     max-width: 100%;
   }
