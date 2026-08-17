@@ -7,11 +7,11 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "build:portfolio": "npm run build --workspace @theo/portfolio",
+    "build:gallery": "npm run build --workspace @theo/gallery",
     "build:notes": "npm run build --workspace @theo/notes",
-    "dev:portfolio": "npm run dev --workspace @theo/portfolio",
+    "dev:gallery": "npm run dev --workspace @theo/gallery",
     "dev:notes": "npm run dev --workspace @theo/notes",
-    "deploy:portfolio": "npm run deploy --workspace @theo/portfolio",
+    "deploy:gallery": "npm run deploy --workspace @theo/gallery",
     "deploy:notes": "npm run deploy --workspace @theo/notes",
     "deploy:cms-auth": "npm run deploy --workspace @theo/cms-auth"
   }

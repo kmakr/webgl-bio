@@ -1,17 +1,19 @@
+/* theoazriel.com — one quiet grayscale system for the index and the notes.
+   System sans throughout; links are plain text that dims on hover, except in
+   note prose where they keep a light underline for affordance. */
+
 :root {
   color-scheme: light;
-  --width: 720px;
-  --font-main: Verdana, sans-serif;
-  --font-secondary: Verdana, sans-serif;
-  --font-scale: 1em;
+  --width: 40rem;
   --background-color: #fff;
-  --heading-color: #222;
-  --text-color: #444;
-  --link-color: #3273dc;
-  --visited-color: #8b6fcb;
-  --code-background-color: #f2f2f2;
+  --heading-color: #141414;
+  --text-color: #141414;
+  --muted-color: #6f6f6f;
+  --label-color: #8a8a8a;
+  --rule-color: #e4e4e4;
+  --underline-color: #d4d4d4;
+  --code-background-color: #f4f4f4;
   --code-color: #222;
-  --blockquote-color: #222;
 }
 
 * {
@@ -21,15 +23,17 @@
 body {
   max-width: var(--width);
   margin: auto;
-  padding: 20px;
+  padding: 2rem 1.5rem 4rem;
   overflow-wrap: break-word;
   background-color: var(--background-color);
   color: var(--text-color);
-  font-family: var(--font-secondary);
-  font-size: var(--font-scale);
-  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
   text-align: left;
   word-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
@@ -39,30 +43,38 @@ h4,
 h5,
 h6 {
   color: var(--heading-color);
-  font-family: var(--font-main);
+  font-size: 1em;
+  font-weight: 600;
+  line-height: 1.65;
 }
 
 a {
-  color: var(--link-color);
+  color: inherit;
   cursor: pointer;
   text-decoration: none;
 }
 
-a:visited {
-  color: var(--visited-color);
-}
-
 a:hover {
-  text-decoration: underline;
+  color: var(--muted-color);
 }
 
 a:focus-visible {
-  outline: 2px solid var(--link-color);
+  outline: 1px solid var(--heading-color);
   outline-offset: 3px;
 }
 
+.muted,
+.muted-link {
+  color: var(--muted-color);
+}
+
 nav a {
-  margin-right: 8px;
+  margin-left: 12px;
+  color: var(--muted-color);
+}
+
+nav a:hover {
+  color: var(--heading-color);
 }
 
 strong,
@@ -71,13 +83,12 @@ b {
 }
 
 time {
-  font-family: monospace;
-  font-size: 15px;
   font-style: normal;
+  color: var(--muted-color);
 }
 
 main {
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 table {
@@ -86,7 +97,7 @@ table {
 
 hr {
   border: 0;
-  border-top: 1px dashed;
+  border-top: 1px solid var(--rule-color);
 }
 
 img {
@@ -97,8 +108,8 @@ img {
 
 .draft-banner {
   padding: 8px 12px;
-  border: 1px dashed;
-  font-style: italic;
+  border: 1px dashed var(--label-color);
+  color: var(--muted-color);
 }
 
 code {
@@ -106,40 +117,107 @@ code {
   border-radius: 3px;
   background-color: var(--code-background-color);
   color: var(--code-color);
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
 }
 
 blockquote {
   margin-left: 0;
   padding-left: 20px;
-  border-left: 1px solid #999;
-  color: var(--blockquote-color);
-  font-style: italic;
+  border-left: 1px solid var(--label-color);
+  color: var(--muted-color);
 }
 
 footer {
   padding: 25px 0;
-  text-align: center;
+  color: var(--muted-color);
 }
 
-.title:hover {
-  text-decoration: none;
+/* --- site header on note, archive, tag, and draft pages --- */
+
+.site-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4rem;
 }
 
-.title h1 {
-  font-size: 1.5em;
+.site-header .title {
+  font-weight: 500;
 }
+
+.site-header .title:hover {
+  color: var(--muted-color);
+}
+
+.site-header nav p {
+  margin: 0;
+}
+
+/* --- the index --- */
+
+.home-intro {
+  margin-top: 16vh;
+  margin-bottom: 5rem;
+}
+
+.home-intro h1 {
+  font-weight: 500;
+  margin: 0;
+}
+
+.home-intro p {
+  margin: 0;
+}
+
+.home section {
+  margin-bottom: 4rem;
+}
+
+.home section:last-child {
+  margin-bottom: 0;
+}
+
+.home h2 {
+  font-weight: 400;
+  color: var(--label-color);
+  margin: 0 0 1rem;
+}
+
+.home section p {
+  margin: 0 0 1.25rem;
+}
+
+.home section p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .home-intro {
+    margin-top: 8vh;
+  }
+}
+
+/* --- notes --- */
 
 .note-summary {
-  font-style: italic;
+  color: var(--muted-color);
 }
 
 .prose {
   margin: 1.5em 0;
 }
 
-.prose h2 {
-  font-size: 1.25em;
+.prose a {
+  text-decoration: underline;
+  text-decoration-color: var(--underline-color);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.prose a:hover {
+  color: inherit;
+  text-decoration-color: var(--heading-color);
 }
 
 ul.blog-posts {
@@ -153,10 +231,6 @@ ul.blog-posts li {
 
 ul.blog-posts li time {
   flex: 0 0 130px;
-}
-
-ul.blog-posts li a:visited {
-  color: var(--visited-color);
 }
 
 .archive-shell,

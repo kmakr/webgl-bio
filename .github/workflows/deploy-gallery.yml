@@ -1,22 +1,22 @@
-name: Deploy portfolio
+name: Deploy gallery
 
-# theoazriel.com. Deploys are per-app so a notes edit does not republish the
-# portfolio, and vice versa; the root lockfile is in both filters because it
+# gallery.theoazriel.com. Deploys are per-app so a notes edit does not republish the
+# gallery, and vice versa; the root lockfile is in both filters because it
 # can change either app's build.
 on:
   push:
     branches: [main]
     paths:
-      - 'apps/portfolio/**'
+      - 'apps/gallery/**'
       - 'package-lock.json'
-      - '.github/workflows/deploy-portfolio.yml'
+      - '.github/workflows/deploy-gallery.yml'
       - '.nvmrc'
   workflow_dispatch:
 
 # a deploy already in flight is publishing older commits than the one that
 # just landed, so let it be replaced rather than race
 concurrency:
-  group: deploy-portfolio
+  group: deploy-gallery
   cancel-in-progress: true
 
 permissions:
@@ -36,9 +36,9 @@ jobs:
       - run: npm ci
 
       # tsc -b && vite build — a type error fails here, before anything ships
-      - run: npm run build:portfolio
+      - run: npm run build:gallery
 
-      - run: npm run deploy:portfolio
+      - run: npm run deploy:gallery
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
