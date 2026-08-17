@@ -139,7 +139,7 @@ footer {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-top: 3rem;
+  margin-top: 16vh;
   margin-bottom: 4rem;
 }
 
@@ -194,7 +194,8 @@ footer {
 }
 
 @media (max-width: 480px) {
-  .home-intro {
+  .home-intro,
+  .site-header {
     margin-top: 8vh;
   }
 }
