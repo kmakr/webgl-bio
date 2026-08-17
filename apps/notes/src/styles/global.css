@@ -139,7 +139,7 @@ footer {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-top: 16vh;
+  margin-top: 8vh;
   margin-bottom: 4rem;
 }
 
@@ -158,7 +158,7 @@ footer {
 /* --- the index --- */
 
 .home-intro {
-  margin-top: 16vh;
+  margin-top: 8vh;
   margin-bottom: 5rem;
 }
 
@@ -193,13 +193,6 @@ footer {
   margin-bottom: 0;
 }
 
-@media (max-width: 480px) {
-  .home-intro,
-  .site-header {
-    margin-top: 8vh;
-  }
-}
-
 /* --- notes --- */
 
 .note-summary {
@@ -207,6 +200,10 @@ footer {
 }
 
 .prose {
+  margin: 1.5em 0;
+}
+
+.prose p {
   margin: 1.5em 0;
 }
 

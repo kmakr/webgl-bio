@@ -23,8 +23,6 @@ const dateText = new Intl.DateTimeFormat('en-GB', {
       <p class="note-summary">{summary}</p>
       <p class="note-meta"><time datetime={date.toISOString()}>{dateText}</time></p>
       <div class="prose"><slot /></div>
-      <p><a href="/">← Back</a></p>
     </article>
   </main>
-  <footer><p><a href="mailto:theo.azriel@icloud.com">Reply by email</a></p></footer>
 </BaseLayout>
