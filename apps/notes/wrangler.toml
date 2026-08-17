@@ -7,6 +7,13 @@ directory = "./dist"
 html_handling = "force-trailing-slash"
 not_found_handling = "404-page"
 
+# The site serves the root domain; notes.theoazriel.com stays attached so
+# links to the old subdomain keep resolving (a redirect rule in the
+# Cloudflare dashboard can later send it to theoazriel.com properly).
+[[routes]]
+pattern = "theoazriel.com"
+custom_domain = true
+
 [[routes]]
 pattern = "notes.theoazriel.com"
 custom_domain = true

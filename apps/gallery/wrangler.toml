@@ -1,0 +1,16 @@
+# gallery.theoazriel.com — the cloth, showing photographs.
+#
+# Deployed fresh as "theo-gallery"; the old root-domain Worker for this app
+# was the auto-named "wild-sun-9904", which can be deleted once this one is
+# live and theoazriel.com has moved to the notes/site Worker.
+
+name = "theo-gallery"
+compatibility_date = "2025-08-18"
+workers_dev = true
+
+[assets]
+directory = "./dist"
+
+[[routes]]
+pattern = "gallery.theoazriel.com"
+custom_domain = true

@@ -1,6 +1,6 @@
 name: Deploy notes
 
-# notes.theoazriel.com. This is also the publish step for writing: a note
+# theoazriel.com. This is also the publish step for writing: a note
 # committed to main — from an editor, the GitHub web UI, or a phone — goes
 # live without anyone running wrangler by hand.
 on:

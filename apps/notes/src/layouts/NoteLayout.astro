@@ -2,7 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 
-const { title, summary, date, tags = [], draft = false } = Astro.props;
+const { title, summary, date, draft = false } = Astro.props;
 const dateText = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: 'short',
@@ -22,15 +22,8 @@ const dateText = new Intl.DateTimeFormat('en-GB', {
       <h1>{title}</h1>
       <p class="note-summary">{summary}</p>
       <p class="note-meta"><time datetime={date.toISOString()}>{dateText}</time></p>
-      <hr />
       <div class="prose"><slot /></div>
-      <p class="tag-list">
-        Tags: {tags.map((tag: string, index: number) => (
-          <><a href={`/tags/${tag.toLowerCase()}`}>{tag}</a>{index < tags.length - 1 ? ', ' : ''}</>
-        ))}
-      </p>
-      <hr />
-      <p><a href="/">← Back to blog</a></p>
+      <p><a href="/">← Back</a></p>
     </article>
   </main>
   <footer><p><a href="mailto:theo.azriel@icloud.com">Reply by email</a></p></footer>

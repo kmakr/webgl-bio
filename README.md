@@ -4,20 +4,23 @@ One repository contains both public sites.
 
 ```text
 apps/
-├── portfolio/  # theoazriel.com
-└── notes/      # notes.theoazriel.com
+├── notes/      # theoazriel.com — the index and the notes
+└── gallery/    # gallery.theoazriel.com — photographs on the cloth
 ```
 
-The portfolio is a React, Vite, and Three.js site built on the Holocloth cloth
-simulation. Notes is a static Astro site. Markdown files in
-`apps/notes/src/content/notes` are the published content.
+The site at the root domain is a static Astro app: its index page is a quiet
+typographic table of contents, and Markdown files in
+`apps/notes/src/content/notes` are the published notes. The gallery is a
+React, Vite, and Three.js app built on the Holocloth cloth simulation.
+`notes.theoazriel.com` stays attached to the site Worker so old note links
+keep resolving.
 
 ## Run
 
 ```bash
 npm install
-npm run dev:portfolio
 npm run dev:notes
+npm run dev:gallery
 ```
 
 ## Build
@@ -30,19 +33,20 @@ npm run build
 
 1. Add a Markdown file to `apps/notes/src/content/notes`.
 2. While `draft: true`, the note renders only at the unlisted, noindex
-   `notes.theoazriel.com/drafts/<slug>` for proofreading.
+   `theoazriel.com/drafts/<slug>` for proofreading.
 3. Set `draft: false` in its frontmatter.
 4. Commit and push the file.
-5. Cloudflare builds and deploys the notes site.
+5. Cloudflare builds and deploys the site; the note appears on the index
+   and at `theoazriel.com/notes/<slug>`.
 
 ## Deploy
 
 ```bash
-npm run deploy:portfolio
 npm run deploy:notes
+npm run deploy:gallery
 ```
 
-## Portfolio
+## Gallery
 
 A black-and-white personal site built on the Holocloth cloth simulation.
 

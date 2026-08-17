@@ -2,8 +2,8 @@
 import '../styles/global.css';
 
 const {
-  title = 'Theo Azriel’s blog',
-  description = 'Working notes about interfaces, systems, and experiments by Theo Azriel.',
+  title = 'Theo Azriel',
+  description = 'Photographs, notes, and things built for the web by Theo Azriel.',
   noindex = false,
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -22,7 +22,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" type="application/rss+xml" title="Theo Azriel Notes" href="/feed.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Theo Azriel — Notes" href="/feed.xml" />
     <title>{title}</title>
   </head>
   <body>
