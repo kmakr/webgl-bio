@@ -329,7 +329,10 @@ export default function App() {
       <div id="canvas-host" ref={hostRef} aria-hidden="true" />
 
       <header className="portfolio-header">
-        <a className="wordmark" href="https://theoazriel.com">Theo Azriel</a>
+        <a className="wordmark" href="https://theoazriel.com">
+          <img className="wordmark-mark" src="/favicon.svg" alt="" width="20" height="20" />
+          Theo Azriel
+        </a>
         <nav className="section-nav" aria-label="Site links">
           <a href="https://theoazriel.com">Home</a>
         </nav>

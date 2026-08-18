@@ -144,7 +144,19 @@ footer {
 }
 
 .site-header .title {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
   font-weight: 500;
+}
+
+/* the mark above the wordmark, filling the space over the name */
+.mark {
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin-left: -6px; /* optically align the round edge with the text's left stroke */
 }
 
 .site-header .title:hover {
@@ -163,6 +175,10 @@ footer {
 }
 
 .home-intro h1 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
   font-weight: 500;
   margin: 0;
 }

@@ -9,7 +9,10 @@ const notes = (await getCollection('notes', ({ data }) => !data.draft))
 <BaseLayout>
   <main class="home">
     <header class="home-intro">
-      <h1>Theo Azriel</h1>
+      <h1>
+        <img class="mark" src="/favicon.svg" alt="" width="56" height="56" />
+        Theo Azriel
+      </h1>
       <p class="muted">Photographs, notes, and things built for the web.</p>
     </header>
 

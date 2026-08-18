@@ -83,7 +83,14 @@ a {
 }
 
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-weight: 600;
+}
+
+.wordmark-mark {
+  display: block;
 }
 
 .section-nav {

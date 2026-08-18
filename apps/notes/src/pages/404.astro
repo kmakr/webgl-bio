@@ -1,13 +1,31 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import SiteHeader from '../components/SiteHeader.astro';
 ---
 
-<BaseLayout title="Not found — Theo Azriel">
-  <SiteHeader section="404" />
+<BaseLayout title="404 — Theo Azriel" noindex>
   <main class="not-found">
-    <p class="eyebrow">Nothing at this address</p>
-    <h1>Not found.</h1>
-    <a href="/">Return to notes →</a>
+    <a href="/" aria-label="Theo Azriel home"><img class="nf-mark" src="/favicon.svg" alt="" width="160" height="160" /></a>
+    <p class="nf-line">404 — nothing here</p>
   </main>
 </BaseLayout>
+
+<style>
+  .not-found {
+    min-height: calc(100vh - 6rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .nf-mark {
+    display: block;
+  }
+
+  .nf-line {
+    margin: 3.5rem 0 0;
+    font-size: 19px;
+    font-weight: 500;
+  }
+</style>
