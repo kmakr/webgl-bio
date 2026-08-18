@@ -24,6 +24,14 @@ const notes = (await getCollection('notes', ({ data }) => !data.draft))
       </a>
     </section>
 
+    <section aria-label="Play">
+      <h2>Play</h2>
+      <a class="item" href="https://onisolo.theoazriel.com">
+        <span>onisolo.theoazriel.com</span>
+        <span class="muted">A monochrome sword game played on a living sheet of ink and paper.</span>
+      </a>
+    </section>
+
     <section aria-label="Notes">
       <h2>Notes</h2>
       {notes.map((note) => (
