@@ -133,7 +133,7 @@ footer {
   color: var(--muted-color);
 }
 
-/* --- site header on note, archive, tag, and draft pages --- */
+/* --- site header on note and draft pages --- */
 
 .site-header {
   display: flex;
@@ -254,38 +254,8 @@ ul.blog-posts li time {
   flex: 0 0 130px;
 }
 
-.archive-shell,
 .not-found {
   min-height: 50vh;
-}
-
-.archive-header .eyebrow {
-  display: none;
-}
-
-.archive-year {
-  display: grid;
-  grid-template-columns: 90px 1fr;
-  gap: 20px;
-}
-
-.archive-year h2 {
-  font-size: 1em;
-}
-
-.archive-year ol {
-  padding: 0;
-  list-style: none;
-}
-
-.archive-year li {
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
-}
-
-.archive-year time {
-  flex: 0 0 auto;
 }
 
 @media (max-width: 520px) {
@@ -296,10 +266,5 @@ ul.blog-posts li time {
 
   ul.blog-posts li time {
     display: block;
-  }
-
-  .archive-year {
-    grid-template-columns: 1fr;
-    gap: 0;
   }
 }

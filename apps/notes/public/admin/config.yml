@@ -40,7 +40,7 @@ collections:
         widget: boolean
         default: false
         hint: >-
-          Drafts are kept off the site, feed, tags, and archive, but render at
+          Drafts are kept off the site and the feed, but render at
           theoazriel.com/drafts/<slug> — an unlisted, noindex preview.
       # `body` is the one reserved field name: it is not frontmatter, it IS
       # the Markdown below the --- fence. Omit it and the CMS shows no
