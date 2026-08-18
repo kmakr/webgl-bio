@@ -19,7 +19,10 @@
  */
 
 /** Only these sites may receive a token from the popup handshake. */
-const ALLOWED_ORIGINS = ['https://notes.theoazriel.com'];
+const ALLOWED_ORIGINS = [
+  'https://theoazriel.com',
+  'https://notes.theoazriel.com',
+];
 
 const GITHUB_AUTHORIZE = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN = 'https://github.com/login/oauth/access_token';
@@ -99,7 +102,12 @@ function popupResult(status, payload) {
       var allowed = ${JSON.stringify(ALLOWED_ORIGINS)};
       if (!window.opener) { document.body.textContent = 'Open this from the CMS.'; return; }
       window.addEventListener('message', function reply(e) {
-        if (!allowed.includes(e.origin)) return;
+        if (!allowed.includes(e.origin)) {
+          // say so, rather than hanging on a silently dropped message
+          document.body.textContent =
+            'This CMS origin (' + e.origin + ') is not allowed by the auth relay.';
+          return;
+        }
         window.removeEventListener('message', reply);
         window.opener.postMessage(${JSON.stringify(message)}, e.origin);
         window.close();
