@@ -17,3 +17,7 @@ custom_domain = true
 [[routes]]
 pattern = "notes.theoazriel.com"
 custom_domain = true
+
+[[routes]]
+pattern = "onisolo.theoazriel.com"
+custom_domain = true
