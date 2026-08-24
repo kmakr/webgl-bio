@@ -223,8 +223,8 @@
       .fleaf {
         position: absolute;
         top: 0;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 48'%3E%3Cpath fill='%231a1917' d='M4 24Q30 4 60 7Q86 10 97 24Q86 38 60 41Q30 44 4 24Z'/%3E%3C/svg%3E");
         background-size: contain;
+        background-position: center;
         background-repeat: no-repeat;
         animation: fall var(--dur) ease-in-out forwards;
       }
@@ -509,6 +509,16 @@
         accent-color: #a5764a;
       }
 
+      .tune select {
+        grid-column: 2;
+        padding: 1px 4px;
+        border: 1px solid rgb(60 54 44 / 18%);
+        border-radius: 5px;
+        background: rgb(255 255 255 / 55%);
+        font: inherit;
+        color: inherit;
+      }
+
       .tune .acts {
         display: flex;
         gap: 6px;
@@ -701,6 +711,69 @@
          A seeded branch-and-leaf generator: each branch is a bezier arc
          entering from the right, with lens-shaped leaves alternating
          along it and denser clusters at the tips. */
+      /* ---- leaf species ---------------------------------------------------
+         Each shape draws one leaf in local coordinates: stem at the
+         origin, tip toward +x, half-width w. `asp` is the width-to-length
+         ratio, `len` scales length, `cnt` scales how many grow. */
+      const SHAPE_FNS = {
+        lens(P, L, w) {
+          return `M${P(0, 0)}Q${P(L * 0.5, -w)} ${P(L, 0)}Q${P(L * 0.5, w)} ${P(0, 0)}Z`;
+        },
+        oak(P, L, w) {
+          return (
+            `M${P(0, 0)}` +
+            `Q${P(0.1 * L, -0.9 * w)} ${P(0.2 * L, -0.72 * w)}Q${P(0.29 * L, -0.38 * w)} ${P(0.37 * L, -0.52 * w)}` +
+            `Q${P(0.45 * L, -1.02 * w)} ${P(0.55 * L, -0.92 * w)}Q${P(0.62 * L, -0.42 * w)} ${P(0.68 * L, -0.55 * w)}` +
+            `Q${P(0.79 * L, -0.92 * w)} ${P(0.87 * L, -0.68 * w)}Q${P(0.97 * L, -0.32 * w)} ${P(L, 0)}` +
+            `Q${P(0.97 * L, 0.32 * w)} ${P(0.87 * L, 0.68 * w)}Q${P(0.79 * L, 0.92 * w)} ${P(0.68 * L, 0.55 * w)}` +
+            `Q${P(0.62 * L, 0.42 * w)} ${P(0.55 * L, 0.92 * w)}Q${P(0.45 * L, 1.02 * w)} ${P(0.37 * L, 0.52 * w)}` +
+            `Q${P(0.29 * L, 0.38 * w)} ${P(0.2 * L, 0.72 * w)}Q${P(0.1 * L, 0.9 * w)} ${P(0, 0)}Z`
+          );
+        },
+        maple(P, L, w) {
+          return (
+            `M${P(0, 0)}` +
+            `Q${P(0.06 * L, -0.5 * w)} ${P(0.3 * L, -1.1 * w)}Q${P(0.35 * L, -0.5 * w)} ${P(0.6 * L, -0.9 * w)}` +
+            `Q${P(0.62 * L, -0.3 * w)} ${P(L, 0)}` +
+            `Q${P(0.62 * L, 0.3 * w)} ${P(0.6 * L, 0.9 * w)}Q${P(0.35 * L, 0.5 * w)} ${P(0.3 * L, 1.1 * w)}` +
+            `Q${P(0.06 * L, 0.5 * w)} ${P(0, 0)}Z`
+          );
+        },
+        ginkgo(P, L, w) {
+          return (
+            `M${P(0, 0)}` +
+            `Q${P(0.35 * L, -0.16 * w)} ${P(0.8 * L, -0.8 * w)}Q${P(1.06 * L, -0.42 * w)} ${P(0.98 * L, -0.1 * w)}` +
+            `L${P(0.86 * L, 0)}L${P(0.98 * L, 0.1 * w)}` +
+            `Q${P(1.06 * L, 0.42 * w)} ${P(0.8 * L, 0.8 * w)}Q${P(0.35 * L, 0.16 * w)} ${P(0, 0)}Z`
+          );
+        },
+        pine(P, L, w, rnd) {
+          let d = '';
+          const n = 8 + Math.floor(rnd() * 4);
+          for (let i = 0; i < n; i++) {
+            const a = -0.95 + (1.9 * i) / (n - 1) + (rnd() - 0.5) * 0.12;
+            const l = L * (0.75 + rnd() * 0.35);
+            const ex = Math.cos(a) * l;
+            const ey = Math.sin(a) * l;
+            const nx = -Math.sin(a);
+            const ny = Math.cos(a);
+            const t = Math.max(1.6, L * 0.035);
+            d += `M${P(0, 0)}Q${P(ex / 2 + nx * t * 2, ey / 2 + ny * t * 2)} ${P(ex, ey)}Q${P(ex / 2 - nx * t, ey / 2 - ny * t)} ${P(0, 0)}Z`;
+          }
+          return d;
+        },
+      };
+
+      const SPECIES = {
+        beech: { shape: 'lens', asp: [0.34, 0.44], len: 1, cnt: 1 },
+        oak: { shape: 'oak', asp: [0.3, 0.38], len: 1.05, cnt: 0.9 },
+        maple: { shape: 'maple', asp: [0.45, 0.55], len: 1.05, cnt: 0.75 },
+        willow: { shape: 'lens', asp: [0.1, 0.15], len: 1.45, cnt: 1.5 },
+        ginkgo: { shape: 'ginkgo', asp: [0.5, 0.6], len: 0.85, cnt: 0.9 },
+        pine: { shape: 'pine', asp: [0.3, 0.3], len: 0.9, cnt: 0.55 },
+      };
+      const SPECIES_NAMES = Object.keys(SPECIES);
+
       function makeLeaves(cfg) {
         let s = Math.floor(cfg.seed) % 2147483647;
         if (s <= 0) s += 2147483646;
@@ -710,13 +783,15 @@
         const petals = [];
         const strokes = [];
 
-        function leafShape(x, y, L, deg) {
-          const w = L * nrand(0.34, 0.44) * cfg.leafWidth;
+        function leafShape(x, y, L0, deg, sp) {
+          const kind = SPECIES[sp];
+          const L = L0 * kind.len;
+          const w = L * nrand(kind.asp[0], kind.asp[1]) * cfg.leafWidth;
           const a = (deg * Math.PI) / 180;
           const ca = Math.cos(a);
           const sa = Math.sin(a);
           const P = (lx, ly) => `${R(x + lx * ca - ly * sa)} ${R(y + lx * sa + ly * ca)}`;
-          petals.push(`M${P(0, 0)}Q${P(L * 0.5, -w)} ${P(L, 0)}Q${P(L * 0.5, w)} ${P(0, 0)}Z`);
+          petals.push(SHAPE_FNS[kind.shape](P, L, w, nrnd));
         }
 
         function bez(p0, p1, p2, p3, t) {
@@ -727,25 +802,26 @@
           ];
         }
 
-        function branch(p0, p1, p2, p3, width, base, depth) {
+        function branch(p0, p1, p2, p3, width, base, depth, sp) {
           strokes.push(
             `<path d='M${R(p0[0])} ${R(p0[1])}C${R(p1[0])} ${R(p1[1])} ${R(p2[0])} ${R(p2[1])} ${R(p3[0])} ${R(p3[1])}' fill='none' stroke='#000' stroke-width='${width}' stroke-linecap='round'/>`
           );
+          const cnt = SPECIES[sp].cnt;
           const n = 14;
           for (let i = 2; i <= n; i++) {
             const t = i / n;
             const [x, y] = bez(p0, p1, p2, p3, t);
             const [xa, ya] = bez(p0, p1, p2, p3, Math.min(1, t + 0.02));
             const tangent = (Math.atan2(ya - y, xa - x) * 180) / Math.PI;
-            const k = Math.max(1, Math.round((2 + Math.floor(nrand(0, 2)) + (t > 0.75 ? 2 : 0)) * cfg.density));
+            const k = Math.max(1, Math.round((2 + Math.floor(nrand(0, 2)) + (t > 0.75 ? 2 : 0)) * cfg.density * cnt));
             for (let j = 0; j < k; j++) {
               const side = (i + j) % 2 ? 1 : -1;
               const L = base * cfg.leafSize * nrand(0.75, 1.35) * (0.7 + 0.5 * t);
-              leafShape(x + nrand(-18, 18), y + nrand(-18, 18), L, tangent + side * nrand(24, 78));
+              leafShape(x + nrand(-18, 18), y + nrand(-18, 18), L, tangent + side * nrand(24, 78), sp);
             }
           }
-          for (let j = 0; j < Math.round(8 * cfg.density); j++) {
-            leafShape(p3[0] + nrand(-34, 34), p3[1] + nrand(-34, 34), base * cfg.leafSize * nrand(0.9, 1.45), nrand(0, 360));
+          for (let j = 0; j < Math.round(8 * cfg.density * cnt); j++) {
+            leafShape(p3[0] + nrand(-34, 34), p3[1] + nrand(-34, 34), base * cfg.leafSize * nrand(0.9, 1.45), nrand(0, 360), sp);
           }
           if (depth > 0) {
             for (let q = 0; q < cfg.twigs; q++) {
@@ -763,7 +839,8 @@
                 [x + Math.cos(a) * len, y + Math.sin(a) * len],
                 Math.max(4, width - 4),
                 base * 0.82,
-                depth - 1
+                depth - 1,
+                sp
               );
             }
           }
@@ -778,9 +855,11 @@
           [[1620, 560], [1400, 510], [1230, 400], [1020, 300], 9, 108],
           [[1620, 900], [1350, 850], [1140, 700], [920, 560], 10, 118],
         ];
+        const chosen = SPECIES[cfg.species] ? cfg.species : cfg.species === 'mixed' ? 'mixed' : 'beech';
         for (let b = 0; b < Math.min(cfg.branches, anchors.length); b++) {
           const [p0, p1, p2, p3, w, base] = anchors[b];
-          branch(p0, p1, p2, p3, w, base, 1);
+          const sp = chosen === 'mixed' ? SPECIES_NAMES[Math.floor(nrnd() * SPECIES_NAMES.length)] : chosen;
+          branch(p0, p1, p2, p3, w, base, 1, sp);
         }
         return `<svg viewBox='0 0 1600 1400' preserveAspectRatio='xMaxYMid slice' aria-hidden='true'>${strokes.join('')}<path fill='#000' d='${petals.join('')}'/></svg>`;
       }
@@ -791,6 +870,7 @@
          custom property, optionally with a unit. */
       const TUNE = [
         ['seed', 'seed', 1, 9999, 1, 7, 'leaves', 'leaves'],
+        ['species', 'species', 0, 0, 0, 'beech', 'leaves', null, ['beech', 'oak', 'maple', 'willow', 'ginkgo', 'pine', 'mixed']],
         ['branches', 'branches', 2, 7, 1, 4, 'leaves', null],
         ['twigs', 'twigs', 0, 4, 1, 2, 'leaves', null],
         ['leafSize', 'leaf size', 0.5, 1.8, 0.05, 1, 'leaves', null],
@@ -841,7 +921,7 @@
       }
 
       /* Build the panel. */
-      for (const [key, label, min, max, step, , kind, group] of TUNE) {
+      for (const [key, label, min, max, step, , kind, group, options] of TUNE) {
         if (group) {
           const h = document.createElement('h2');
           h.textContent = group;
@@ -850,6 +930,26 @@
         const row = document.createElement('label');
         const name = document.createElement('span');
         name.textContent = label;
+
+        if (options) {
+          const select = document.createElement('select');
+          for (const opt of options) {
+            const o = document.createElement('option');
+            o.value = o.textContent = opt;
+            select.appendChild(o);
+          }
+          select.value = options.includes(cfg[key]) ? cfg[key] : options[0];
+          cfg[key] = select.value;
+          select.addEventListener('change', () => {
+            cfg[key] = select.value;
+            apply(key, kind);
+            save();
+          });
+          row.append(name, select);
+          tunePanel.appendChild(row);
+          continue;
+        }
+
         const val = document.createElement('b');
         const input = document.createElement('input');
         input.type = 'range';
@@ -915,7 +1015,22 @@
         if (kind !== 'leaves' && cfg[key] !== def) apply(key, kind);
       }
 
-      /* Warm evenings: now and then a leaf lets go and drifts down. */
+      /* Warm evenings: now and then a leaf lets go and drifts down,
+         shaped like the species outside. */
+      const fleafURIs = {};
+      function fleafURI(sp) {
+        if (!fleafURIs[sp]) {
+          const kind = SPECIES[sp];
+          const L = 100;
+          const w = L * ((kind.asp[0] + kind.asp[1]) / 2);
+          const P = (x, y) => `${Math.round(x)} ${Math.round(y)}`;
+          const d = SHAPE_FNS[kind.shape](P, L, w, Math.random);
+          const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='-8 -64 120 128'><path fill='#1a1917' d='${d}'/></svg>`;
+          fleafURIs[sp] = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+        }
+        return fleafURIs[sp];
+      }
+
       const fall = document.getElementById('fall');
       setInterval(() => {
         if (!document.body.classList.contains('warm')) return;
@@ -924,9 +1039,11 @@
 
         const wrap = document.createElement('div');
         wrap.className = 'fleaf';
+        const sp = SPECIES[cfg.species] ? cfg.species : SPECIES_NAMES[Math.floor(rand(0, SPECIES_NAMES.length))];
+        wrap.style.backgroundImage = fleafURI(sp);
         const size = rand(48, 90);
         wrap.style.width = `${size}px`;
-        wrap.style.height = `${size * 0.48}px`;
+        wrap.style.height = `${size}px`;
         wrap.style.left = `${rand(30, 96)}vw`;
         wrap.style.setProperty('--op', String(rand(0.1, 0.16)));
         wrap.style.setProperty('--sx1', `${rand(-70, -20)}px`);
