@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f0efeb" />
+    <meta name="theme-color" content="#f7f4ee" />
     <meta name="description" content="A quiet room of sunlight." />
     <meta name="robots" content="noindex" />
     <link rel="canonical" href="https://home.theoazriel.com/" />
@@ -11,13 +11,13 @@
     <style>
       :root {
         color-scheme: light;
-        --wall: #f0efeb;
-        --wall-warm: #ead8c8;
-        --light: #fffefa;
-        --light-warm: #f9e7cd;
-        --shadow: rgb(55 56 52 / 8%);
-        --shadow-warm: rgb(92 70 56 / 11%);
-        --ink: #777772;
+        --wall-a: #fffdf8;
+        --wall-b: #f1ede5;
+        --shadow: rgb(60 54 44 / 26%);
+        --shadow-deep: rgb(58 50 40 / 34%);
+        --tint: #ffc08c;
+        --ink: #8b857b;
+        --ink-warm: #7d6046;
         --ease: cubic-bezier(0.455, 0.19, 0, 0.985);
       }
 
@@ -34,12 +34,7 @@
 
       body {
         overflow: hidden;
-        background: var(--wall);
-        transition: background 1.8s var(--ease);
-      }
-
-      body.warm {
-        background: var(--wall-warm);
+        background: linear-gradient(83deg, var(--wall-b), var(--wall-a) 72%);
       }
 
       .room {
@@ -49,133 +44,338 @@
         isolation: isolate;
       }
 
-      .wash,
-      .blinds,
-      .branches,
-      .blur,
-      .grain {
+      .room > div {
         pointer-events: none;
+      }
+
+      /* ---- the lit wall -------------------------------------------------- */
+
+      .bloom {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(70vh 55vh at 91% 5%, rgb(255 255 250 / 80%), transparent 64%),
+          linear-gradient(257deg, rgb(255 255 250 / 72%), rgb(255 255 250 / 38%) 34%, transparent 60%);
+        transition: background 2.4s var(--ease);
+      }
+
+      body.warm .bloom {
+        background:
+          radial-gradient(75vh 60vh at 85% 13%, rgb(255 255 248 / 85%), transparent 66%),
+          linear-gradient(255deg, rgb(255 254 246 / 78%), rgb(255 254 246 / 42%) 36%, transparent 62%);
+      }
+
+      /* ---- shadow projection (blinds, frame, foliage) -------------------- */
+
+      .light {
+        position: absolute;
+        inset: 0;
+        transform: rotate(-18deg);
+        transition: transform 2.2s var(--ease);
+        animation: settle 2.6s var(--ease);
+      }
+
+      body.warm .light {
+        transform: rotate(-13.5deg) translateX(5vw);
+      }
+
+      @keyframes settle {
+        from {
+          transform: rotate(-21.5deg);
+        }
+      }
+
+      .shade {
+        position: absolute;
+        inset: -50vh -30vw;
+        background: linear-gradient(
+          to left,
+          rgb(62 56 46 / 10%) 24%,
+          rgb(62 56 46 / 7%) 46%,
+          transparent 72%
+        );
+        transition: background 2.4s var(--ease);
+      }
+
+      body.warm .shade {
+        background: linear-gradient(
+          to left,
+          rgb(62 56 46 / 13%) 24%,
+          rgb(62 56 46 / 9%) 46%,
+          transparent 72%
+        );
+      }
+
+      .slat {
+        position: absolute;
+        right: -26vw;
+        width: 170vw;
+        background: linear-gradient(
+          to left,
+          var(--shadow) 4%,
+          var(--shadow) 38%,
+          transparent 74%
+        );
+        filter: blur(5px);
+        transition: background 2.4s var(--ease);
+      }
+
+      .jamb,
+      .jamb-b {
+        position: absolute;
+        top: -45vh;
+        height: 190vh;
+        background: var(--shadow);
+        filter: blur(7px);
+        transition: background 2.4s var(--ease);
+      }
+
+      .jamb {
+        right: 19vw;
+        width: 26px;
+        opacity: 0.75;
+      }
+
+      .jamb-b {
+        right: 47vw;
+        width: 16px;
+        opacity: 0.45;
+      }
+
+      body.warm .slat,
+      body.warm .jamb,
+      body.warm .jamb-b {
+        --shadow: var(--shadow-deep);
+      }
+
+      /* ---- foliage ------------------------------------------------------- */
+
+      .foliage {
+        --fs: 1;
+        position: absolute;
+        opacity: 0.55;
+        transition: opacity 2.6s var(--ease);
+        transform: scale(var(--fs));
+        animation: gust 17s ease-in-out infinite;
+        transform-origin: top right;
+      }
+
+      body.warm .foliage {
+        opacity: 0.92;
+      }
+
+      .f-a {
+        top: -4vh;
+        right: -12vw;
+        width: 56vw;
+        height: 68vh;
+      }
+
+      .f-b {
+        top: 42vh;
+        right: -6vw;
+        width: 30vw;
+        height: 40vh;
+        opacity: 0.42;
+        animation-duration: 21s;
+        animation-delay: -8s;
+      }
+
+      body.warm .f-b {
+        opacity: 0.75;
+      }
+
+      @keyframes gust {
+        0%,
+        100% {
+          transform: scale(var(--fs)) rotate(-0.7deg);
+        }
+        55% {
+          transform: scale(var(--fs)) rotate(1.2deg) translateX(-0.5vw);
+        }
+      }
+
+      .leaf {
+        position: absolute;
+      }
+
+      .leaf i {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: var(--shadow-deep);
+        animation: sway var(--dur) ease-in-out var(--delay) infinite alternate;
+      }
+
+      @keyframes sway {
+        from {
+          transform: rotate(var(--r0));
+        }
+        to {
+          transform: rotate(var(--r1)) translateX(var(--tx));
+        }
+      }
+
+      /* ---- falling leaves (warm evenings) -------------------------------- */
+
+      .fall {
         position: absolute;
         inset: 0;
       }
 
-      .wash {
-        background:
-          radial-gradient(ellipse at 82% 22%, rgb(255 255 251 / 90%) 0%, transparent 48%),
-          linear-gradient(118deg, transparent 30%, var(--light) 79%, rgb(255 255 252 / 98%));
-        opacity: 0.86;
-        transition: background 1.8s var(--ease), opacity 1.8s var(--ease);
-      }
-
-      body.warm .wash {
-        background:
-          radial-gradient(ellipse at 82% 22%, rgb(255 244 224 / 72%) 0%, transparent 49%),
-          linear-gradient(118deg, transparent 25%, var(--light-warm) 79%, rgb(255 238 214 / 88%));
-        opacity: 0.7;
-      }
-
-      .blinds {
-        top: -23vh;
-        right: -4vw;
-        left: auto;
-        width: 64vw;
-        height: 146vh;
-        background: repeating-linear-gradient(
-          0deg,
-          var(--shadow) 0 30px,
-          transparent 30px 88px
-        );
-        opacity: 0.7;
-        -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgb(0 0 0 / 20%) 22%, #000 68%);
-        mask-image: linear-gradient(90deg, transparent 0%, rgb(0 0 0 / 20%) 22%, #000 68%);
-        transform-origin: top right;
-        transform: matrix3d(
-          0.82, -0.06, 0, 0.00055,
-          0, 1, 0, 0,
-          0, 0, 1, 0,
-          0, 0, 0, 1
-        );
-        transition: background 1.8s var(--ease), transform 1.8s var(--ease);
-      }
-
-      .blinds::before,
-      .blinds::after {
-        content: "";
+      .fleaf {
         position: absolute;
         top: 0;
-        width: 5px;
-        height: 100%;
-        background: var(--shadow);
-        opacity: 0.55;
-        transition: background 1.8s var(--ease);
+        animation: fall var(--dur) ease-in-out forwards;
       }
 
-      .blinds::before { left: 34%; }
-      .blinds::after { right: 29%; }
-
-      body.warm .blinds {
-        background: repeating-linear-gradient(
-          0deg,
-          var(--shadow-warm) 0 36px,
-          transparent 36px 91px
-        );
-        transform: matrix3d(
-          0.84, 0.025, 0, 0.0004,
-          0, 1, 0, 0,
-          0, 0, 1, 0,
-          0, 0, 0, 1
-        );
+      @keyframes fall {
+        0% {
+          opacity: 0;
+          transform: translate3d(0, -16vh, 0) rotate(0deg);
+        }
+        12% {
+          opacity: var(--op);
+        }
+        34% {
+          transform: translate3d(var(--sx1), 24vh, 0) rotate(var(--rr1));
+        }
+        62% {
+          opacity: var(--op);
+          transform: translate3d(var(--sx2), 60vh, 0) rotate(var(--rr2));
+        }
+        100% {
+          opacity: 0;
+          transform: translate3d(0, 112vh, 0) rotate(var(--rr3));
+        }
       }
 
-      body.warm .blinds::before,
-      body.warm .blinds::after {
-        background: var(--shadow-warm);
+      /* ---- penumbra: shadows dissolve as they travel --------------------- */
+
+      .haze {
+        position: absolute;
+        inset: 0;
       }
 
-      .branches {
-        top: -12vh;
-        right: -24vw;
-        left: auto;
-        width: min(1040px, 82vw);
-        height: 122vh;
-        background:
-          radial-gradient(ellipse at 67% 12%, var(--shadow) 0 4%, transparent 4.5%),
-          radial-gradient(ellipse at 83% 19%, var(--shadow) 0 5.5%, transparent 6%),
-          radial-gradient(ellipse at 55% 31%, var(--shadow) 0 4.5%, transparent 5%),
-          radial-gradient(ellipse at 91% 40%, var(--shadow) 0 7%, transparent 7.5%),
-          radial-gradient(ellipse at 69% 52%, var(--shadow) 0 6%, transparent 6.5%),
-          radial-gradient(ellipse at 86% 64%, var(--shadow) 0 8%, transparent 8.5%),
-          radial-gradient(ellipse at 58% 76%, var(--shadow) 0 7%, transparent 7.5%),
-          radial-gradient(ellipse at 78% 89%, var(--shadow) 0 9%, transparent 9.5%),
-          linear-gradient(66deg, transparent 49.5%, var(--shadow) 50% 50.7%, transparent 51.2%);
-        filter: blur(14px);
-        opacity: 0.34;
-        transform-origin: bottom right;
-        animation: breathe 13s ease-in-out infinite;
-        transition: opacity 1.8s var(--ease);
+      .haze > i {
+        position: absolute;
+        inset: 0;
       }
 
-      body.warm .branches {
-        opacity: 0.46;
+      .haze > i:nth-child(1) {
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+        -webkit-mask: linear-gradient(231deg, #0000 30%, #000 44%, #000 58%, #0000 72%);
+        mask: linear-gradient(231deg, #0000 30%, #000 44%, #000 58%, #0000 72%);
       }
 
-      .blur {
-        -webkit-backdrop-filter: blur(7px);
-        backdrop-filter: blur(7px);
-        -webkit-mask-image: linear-gradient(245deg, #000, transparent 74%);
-        mask-image: linear-gradient(245deg, #000, transparent 74%);
+      .haze > i:nth-child(2) {
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        -webkit-mask: linear-gradient(231deg, #0000 50%, #000 64%, #000 78%, #0000 92%);
+        mask: linear-gradient(231deg, #0000 50%, #000 64%, #000 78%, #0000 92%);
       }
+
+      .haze > i:nth-child(3) {
+        -webkit-backdrop-filter: blur(26px);
+        backdrop-filter: blur(26px);
+        -webkit-mask: linear-gradient(231deg, #0000 72%, #000 86%, #000 100%);
+        mask: linear-gradient(231deg, #0000 72%, #000 86%, #000 100%);
+      }
+
+      /* ---- ambient light far from the window ----------------------------- */
+
+      .ambient {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(78deg, var(--wall-b) 12%, transparent 52%);
+        opacity: 0.94;
+      }
+
+      /* ---- film grain ----------------------------------------------------- */
 
       .grain {
-        z-index: 2;
-        opacity: 0.09;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
-        mix-blend-mode: multiply;
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
       }
+
+      .grain::before {
+        content: "";
+        position: absolute;
+        inset: -5rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23g)'/%3E%3C/svg%3E");
+        background-size: 280px 280px;
+        opacity: 0.17;
+        animation: grainshift 0.9s steps(2) infinite;
+      }
+
+      @keyframes grainshift {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+        12% {
+          transform: translate3d(-1.4rem, 1.1rem, 0);
+        }
+        25% {
+          transform: translate3d(2.6rem, -2.2rem, 0);
+        }
+        37% {
+          transform: translate3d(-3.4rem, -0.8rem, 0);
+        }
+        50% {
+          transform: translate3d(1.2rem, 3.1rem, 0);
+        }
+        62% {
+          transform: translate3d(-2.2rem, -3.4rem, 0);
+        }
+        75% {
+          transform: translate3d(3.6rem, 1.8rem, 0);
+        }
+        87% {
+          transform: translate3d(-0.8rem, 2.4rem, 0);
+        }
+        100% {
+          transform: translate3d(1.8rem, -1.2rem, 0);
+        }
+      }
+
+      /* ---- golden hour ---------------------------------------------------- */
+
+      .tint {
+        position: absolute;
+        inset: 0;
+        background: var(--tint);
+        mix-blend-mode: multiply;
+        opacity: 0;
+        transition: opacity 3s var(--ease);
+      }
+
+      body.warm .tint {
+        opacity: 1;
+      }
+
+      /* ---- arrival -------------------------------------------------------- */
+
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: #ddd8cf;
+        animation: lift 2.4s 0.2s var(--ease) forwards;
+      }
+
+      @keyframes lift {
+        to {
+          opacity: 0;
+          visibility: hidden;
+        }
+      }
+
+      /* ---- the toggle ----------------------------------------------------- */
 
       .sun-control {
         position: fixed;
-        z-index: 3;
+        z-index: 5;
         top: max(18px, env(safe-area-inset-top));
         left: max(18px, env(safe-area-inset-left));
         display: grid;
@@ -187,6 +387,15 @@
         background: transparent;
         color: var(--ink);
         cursor: pointer;
+        transition: color 2s var(--ease), opacity 0.2s ease;
+      }
+
+      .sun-control:hover {
+        opacity: 0.6;
+      }
+
+      body.warm .sun-control {
+        color: var(--ink-warm);
       }
 
       .sun-control svg {
@@ -224,52 +433,103 @@
         border-radius: 50%;
       }
 
-      @keyframes breathe {
-        0%, 100% { transform: perspective(500px) rotate(0deg) scale(1); }
-        35% { transform: perspective(500px) rotate(0.7deg) scale(1.025); }
-        68% { transform: perspective(500px) rotate(-0.8deg) scale(0.98); }
-      }
+      /* ---- smaller rooms -------------------------------------------------- */
 
-      @media (max-width: 600px) {
-        .blinds {
-          right: -25vw;
-          width: 110vw;
-          opacity: 0.8;
+      @media (max-width: 640px) {
+        .slat {
+          right: -34vw;
+          width: 210vw;
         }
 
-        .branches {
-          right: -58vw;
-          width: 140vw;
-          opacity: 0.25;
+        .jamb {
+          right: 13vw;
+        }
+
+        .jamb-b {
+          right: 62vw;
+          opacity: 0.3;
+        }
+
+        .foliage {
+          --fs: 0.62;
+        }
+
+        .f-a {
+          top: -8vh;
+          right: -20vw;
+          width: 96vw;
+          height: 58vh;
+        }
+
+        .f-b {
+          top: 44vh;
+          right: 2vw;
+          width: 56vw;
+          height: 34vh;
+        }
+
+        .haze > i:nth-child(1) {
+          -webkit-backdrop-filter: blur(3px);
+          backdrop-filter: blur(3px);
+          -webkit-mask: linear-gradient(231deg, #0000 42%, #000 56%, #000 68%, #0000 80%);
+          mask: linear-gradient(231deg, #0000 42%, #000 56%, #000 68%, #0000 80%);
+        }
+
+        .haze > i:nth-child(2) {
+          -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+          -webkit-mask: linear-gradient(231deg, #0000 60%, #000 74%, #000 86%, #0000 98%);
+          mask: linear-gradient(231deg, #0000 60%, #000 74%, #000 86%, #0000 98%);
+        }
+
+        .haze > i:nth-child(3) {
+          -webkit-backdrop-filter: blur(16px);
+          backdrop-filter: blur(16px);
+          -webkit-mask: linear-gradient(231deg, #0000 80%, #000 94%, #000 100%);
+          mask: linear-gradient(231deg, #0000 80%, #000 94%, #000 100%);
         }
       }
+
+      /* ---- stillness ------------------------------------------------------ */
 
       @media (prefers-reduced-motion: reduce) {
-        body,
-        .wash,
-        .blinds,
-        .blinds::before,
-        .blinds::after,
-        .branches,
-        .sun,
-        .rays,
-        .moon {
+        .light {
           animation: none;
-          transition: none;
+        }
+
+        .foliage,
+        .leaf i,
+        .grain::before {
+          animation: none;
+        }
+
+        .veil {
+          animation-duration: 0.6s;
+          animation-delay: 0s;
         }
       }
     </style>
   </head>
   <body>
     <main class="room" aria-label="Sunlight">
-      <div class="wash"></div>
-      <div class="blinds"></div>
-      <div class="branches"></div>
-      <div class="blur"></div>
+      <div class="bloom"></div>
+      <div class="light">
+        <div class="shade"></div>
+        <div class="jamb"></div>
+        <div class="jamb-b"></div>
+        <div id="slats"></div>
+        <div class="foliage f-a" id="folA"></div>
+        <div class="foliage f-b" id="folB"></div>
+      </div>
+      <div class="fall" id="fall"></div>
+      <div class="haze"><i></i><i></i><i></i></div>
+      <div class="ambient"></div>
       <div class="grain"></div>
+      <div class="tint"></div>
+      <div class="veil"></div>
     </main>
 
-    <button class="sun-control" type="button" aria-label="Set warm light" aria-pressed="false">
+    <button class="sun-control" type="button" aria-label="Set evening light" aria-pressed="false">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <g class="sun" fill="currentColor"><circle cx="12" cy="12" r="3.2" /></g>
         <g class="rays" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.35">
@@ -280,14 +540,122 @@
     </button>
 
     <script>
+      const stillness = matchMedia('(prefers-reduced-motion: reduce)');
+      const rand = (a, b) => a + Math.random() * (b - a);
+
+      /* Venetian blinds: staggered slats, projected diagonally by the
+         rotated container. Thickness and stagger drift a little so the
+         projection never looks machine-made. */
+      const slats = document.getElementById('slats');
+      const STEP = 60;
+
+      function buildSlats() {
+        slats.replaceChildren();
+        const count = Math.ceil((innerHeight * 1.8) / STEP) + 4;
+        for (let i = 0; i < count; i++) {
+          const s = document.createElement('div');
+          s.className = 'slat';
+          s.style.top = `${-0.4 * innerHeight + i * STEP + rand(-2, 2)}px`;
+          s.style.height = `${rand(33, 38)}px`;
+          s.style.opacity = String(rand(0.85, 1));
+          s.style.transform = `translateX(${-i * 11}px)`;
+          slats.appendChild(s);
+        }
+      }
+
+      buildSlats();
+      let resizeWait;
+      addEventListener('resize', () => {
+        clearTimeout(resizeWait);
+        resizeWait = setTimeout(buildSlats, 180);
+      });
+
+      /* Foliage: leaf shadows scattered along an implied branch, each with
+         its own blur, weight, and sway phase. */
+      const SHAPES = [
+        '4% 72% 8% 78%',
+        '2% 86% 4% 68%',
+        '10% 64% 6% 88%',
+        '6% 92% 10% 74%',
+      ];
+
+      function grow(cluster, clumps, baseBlur) {
+        for (let c = 0; c < clumps; c++) {
+          const t = clumps === 1 ? 0.5 : c / (clumps - 1);
+          const cx = 82 - 66 * t + rand(-6, 6);
+          const cy = 6 + 78 * Math.pow(t, 1.15) + rand(-5, 5);
+          const perClump = 4 + Math.floor(rand(0, 4));
+          for (let i = 0; i < perClump; i++) {
+            const wrap = document.createElement('div');
+            wrap.className = 'leaf';
+            const size = rand(52, 124) * (1 - 0.3 * t);
+            wrap.style.width = `${size}px`;
+            wrap.style.height = `${size * rand(0.82, 1)}px`;
+            wrap.style.left = `${cx + rand(-6, 6)}%`;
+            wrap.style.top = `${cy + rand(-7, 7)}%`;
+
+            const leaf = document.createElement('i');
+            leaf.style.borderRadius = SHAPES[Math.floor(rand(0, SHAPES.length))];
+            leaf.style.opacity = String(rand(0.55, 1));
+            leaf.style.filter = `blur(${baseBlur + rand(0, 7)}px)`;
+            leaf.style.setProperty('--r0', `${rand(-40, 320)}deg`);
+            leaf.style.setProperty('--r1', `calc(var(--r0) + ${rand(4, 9)}deg)`);
+            leaf.style.setProperty('--tx', `${rand(-8, 8)}px`);
+            leaf.style.setProperty('--dur', `${rand(4.5, 8.5)}s`);
+            leaf.style.setProperty('--delay', `${-rand(0, 8)}s`);
+
+            wrap.appendChild(leaf);
+            cluster.appendChild(wrap);
+          }
+        }
+      }
+
+      grow(document.getElementById('folA'), 5, 6);
+      grow(document.getElementById('folB'), 3, 10);
+
+      /* Warm evenings: now and then a leaf lets go and drifts down. */
+      const fall = document.getElementById('fall');
+      setInterval(() => {
+        if (!document.body.classList.contains('warm')) return;
+        if (stillness.matches || document.hidden) return;
+        if (fall.childElementCount > 10) return;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'fleaf';
+        const size = rand(40, 84);
+        wrap.style.width = `${size}px`;
+        wrap.style.height = `${size * rand(0.85, 1)}px`;
+        wrap.style.left = `${rand(30, 96)}vw`;
+
+        const leaf = document.createElement('i');
+        leaf.style.display = 'block';
+        leaf.style.width = '100%';
+        leaf.style.height = '100%';
+        leaf.style.background = 'var(--shadow-deep)';
+        leaf.style.borderRadius = SHAPES[Math.floor(rand(0, 4))];
+        leaf.style.filter = `blur(${rand(8, 15)}px)`;
+        wrap.appendChild(leaf);
+
+        wrap.style.setProperty('--op', String(rand(0.35, 0.6)));
+        wrap.style.setProperty('--sx1', `${rand(-70, -20)}px`);
+        wrap.style.setProperty('--sx2', `${rand(20, 70)}px`);
+        wrap.style.setProperty('--rr1', `${rand(30, 80)}deg`);
+        wrap.style.setProperty('--rr2', `${rand(-80, -30)}deg`);
+        wrap.style.setProperty('--rr3', `${rand(120, 220)}deg`);
+        wrap.style.setProperty('--dur', `${rand(9, 15)}s`);
+        wrap.addEventListener('animationend', () => wrap.remove());
+        fall.appendChild(wrap);
+      }, 4200);
+
+      /* The toggle. */
       const button = document.querySelector('.sun-control');
       const theme = document.querySelector('meta[name="theme-color"]');
 
       button.addEventListener('click', () => {
         const warm = document.body.classList.toggle('warm');
         button.setAttribute('aria-pressed', String(warm));
-        button.setAttribute('aria-label', warm ? 'Set clear light' : 'Set warm light');
-        theme.setAttribute('content', warm ? '#ead8c8' : '#f0efeb');
+        button.setAttribute('aria-label', warm ? 'Set morning light' : 'Set evening light');
+        theme.setAttribute('content', warm ? '#f2b489' : '#f7f4ee');
       });
     </script>
   </body>
