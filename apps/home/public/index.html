@@ -165,18 +165,18 @@
       }
 
       .f-a {
-        top: -4vh;
-        right: -12vw;
+        top: 6vh;
+        right: -6vw;
         width: 56vw;
-        height: 68vh;
+        height: 70vh;
       }
 
       .f-b {
-        top: 42vh;
-        right: -6vw;
-        width: 30vw;
-        height: 40vh;
-        opacity: 0.42;
+        top: -8vh;
+        right: 32vw;
+        width: 36vw;
+        height: 42vh;
+        opacity: 0.45;
         animation-duration: 21s;
         animation-delay: -8s;
       }
@@ -462,10 +462,10 @@
         }
 
         .f-b {
-          top: 44vh;
-          right: 2vw;
-          width: 56vw;
-          height: 34vh;
+          top: -6vh;
+          right: 16vw;
+          width: 64vw;
+          height: 30vh;
         }
 
         .haze > i:nth-child(1) {
@@ -570,37 +570,49 @@
         resizeWait = setTimeout(buildSlats, 180);
       });
 
-      /* Foliage: leaf shadows scattered along an implied branch, each with
-         its own blur, weight, and sway phase. */
+      /* Foliage: each branch is an arc that enters from the edge of its
+         cluster box and sweeps inward, with pointed leaves alternating
+         along it — dense and crisp near the edge, sparse and soft at the
+         tip, so the shadow reads as a canopy just outside the window. */
       const SHAPES = [
-        '4% 72% 8% 78%',
-        '2% 86% 4% 68%',
-        '10% 64% 6% 88%',
-        '6% 92% 10% 74%',
+        '2% 98% 4% 96%',
+        '6% 94% 2% 98%',
+        '0 100% 0 100%',
+        '4% 96% 8% 92%',
       ];
 
-      function grow(cluster, clumps, baseBlur) {
-        for (let c = 0; c < clumps; c++) {
-          const t = clumps === 1 ? 0.5 : c / (clumps - 1);
-          const cx = 82 - 66 * t + rand(-6, 6);
-          const cy = 6 + 78 * Math.pow(t, 1.15) + rand(-5, 5);
-          const perClump = 4 + Math.floor(rand(0, 4));
-          for (let i = 0; i < perClump; i++) {
+      function grow(cluster, branches, opts) {
+        for (let b = 0; b < branches; b++) {
+          let px = opts.x0 + rand(-4, 4);
+          let py = opts.y0 + rand(-4, 4) + (opts.spread * b) / branches;
+          let ang = (opts.ang + rand(-12, 12)) * (Math.PI / 180);
+          const bend = ((opts.bend + rand(-8, 8)) * (Math.PI / 180));
+          const leaves = 10 + Math.floor(rand(0, 6));
+          const step = opts.reach / leaves;
+          for (let i = 0; i < leaves; i++) {
+            const t = i / (leaves - 1);
+            px += step * Math.cos(ang);
+            py += step * Math.sin(ang);
+            ang += bend / leaves;
+
             const wrap = document.createElement('div');
             wrap.className = 'leaf';
-            const size = rand(52, 124) * (1 - 0.3 * t);
+            const size = rand(46, 94) * (1 - 0.3 * t);
             wrap.style.width = `${size}px`;
-            wrap.style.height = `${size * rand(0.82, 1)}px`;
-            wrap.style.left = `${cx + rand(-6, 6)}%`;
-            wrap.style.top = `${cy + rand(-7, 7)}%`;
+            wrap.style.height = `${size * rand(0.5, 0.7)}px`;
+            wrap.style.left = `${px + rand(-3, 3)}%`;
+            wrap.style.top = `${py + rand(-3, 3)}%`;
+            const side = i % 2 ? 1 : -1;
+            const deg = (ang * 180) / Math.PI;
+            wrap.style.transform = `rotate(${deg + side * rand(35, 65) - 45}deg)`;
 
             const leaf = document.createElement('i');
             leaf.style.borderRadius = SHAPES[Math.floor(rand(0, SHAPES.length))];
-            leaf.style.opacity = String(rand(0.55, 1));
-            leaf.style.filter = `blur(${baseBlur + rand(0, 7)}px)`;
-            leaf.style.setProperty('--r0', `${rand(-40, 320)}deg`);
-            leaf.style.setProperty('--r1', `calc(var(--r0) + ${rand(4, 9)}deg)`);
-            leaf.style.setProperty('--tx', `${rand(-8, 8)}px`);
+            leaf.style.opacity = String(rand(0.65, 1));
+            leaf.style.filter = `blur(${opts.blur + rand(0, 4) + 5 * t}px)`;
+            leaf.style.setProperty('--r0', `${rand(-4, 0)}deg`);
+            leaf.style.setProperty('--r1', `${rand(2, 7)}deg`);
+            leaf.style.setProperty('--tx', `${rand(-7, 7)}px`);
             leaf.style.setProperty('--dur', `${rand(4.5, 8.5)}s`);
             leaf.style.setProperty('--delay', `${-rand(0, 8)}s`);
 
@@ -610,8 +622,14 @@
         }
       }
 
-      grow(document.getElementById('folA'), 5, 6);
-      grow(document.getElementById('folB'), 3, 10);
+      /* One canopy leans in from the top-right corner, one branch hangs
+         over the top edge mid-wall. */
+      grow(document.getElementById('folA'), 5, {
+        x0: 94, y0: 8, spread: 56, ang: 194, bend: 24, reach: 55, blur: 4,
+      });
+      grow(document.getElementById('folB'), 2, {
+        x0: 62, y0: 0, spread: 30, ang: 128, bend: 20, reach: 55, blur: 6,
+      });
 
       /* Warm evenings: now and then a leaf lets go and drifts down. */
       const fall = document.getElementById('fall');
