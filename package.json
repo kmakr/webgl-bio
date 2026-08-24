@@ -9,8 +9,10 @@
     "build": "npm run build --workspaces --if-present",
     "build:gallery": "npm run build --workspace @theo/gallery",
     "build:notes": "npm run build --workspace @theo/notes",
+    "dev:home": "npm run dev --workspace @theo/home",
     "dev:gallery": "npm run dev --workspace @theo/gallery",
     "dev:notes": "npm run dev --workspace @theo/notes",
+    "deploy:home": "npm run deploy --workspace @theo/home",
     "deploy:gallery": "npm run deploy --workspace @theo/gallery",
     "deploy:notes": "npm run deploy --workspace @theo/notes",
     "deploy:cms-auth": "npm run deploy --workspace @theo/cms-auth"
