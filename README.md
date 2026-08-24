@@ -4,6 +4,7 @@ One repository contains both public sites.
 
 ```text
 apps/
+├── home/       # home.theoazriel.com — a room of sunlight
 ├── notes/      # theoazriel.com — the index and the notes
 └── gallery/    # gallery.theoazriel.com — photographs on the cloth
 ```
@@ -19,6 +20,7 @@ keep resolving.
 
 ```bash
 npm install
+npm run dev:home
 npm run dev:notes
 npm run dev:gallery
 ```
@@ -44,6 +46,7 @@ npm run build
 ```bash
 npm run deploy:notes
 npm run deploy:gallery
+npm run deploy:home
 ```
 
 ## Gallery

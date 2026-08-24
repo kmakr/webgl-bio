@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fffdfa" />
+    <meta name="description" content="A quiet room of sunlight." />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://home.theoazriel.com/" />
+    <title>Sunlight</title>
+    <!-- Shadow-play after Chloe Yan's sunlit.place and jackyzha0/sunlit. -->
+    <style>
+      :root {
+        color-scheme: light;
+        --day: #fffdfa;
+        --evening: #f9c98b;
+        --shadow: #1a1917;
+        --bounce-day: #f5d7a6;
+        --bounce-evening: #eebd7b;
+        --ink: #8b857b;
+        --ink-warm: #7d6046;
+        --ease: cubic-bezier(0.455, 0.19, 0, 0.985);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        --light: var(--day);
+        --bounce-light: var(--bounce-day);
+        overflow: hidden;
+        background-color: var(--light);
+        animation-duration: 0s;
+        animation-fill-mode: forwards;
+        animation-timing-function: linear;
+      }
+
+      body.warm {
+        --light: var(--evening);
+        --bounce-light: var(--bounce-evening);
+      }
+
+      /* The wall itself sweeps through golden-hour colors, not a plain
+         crossfade. */
+      body.animation-ready {
+        animation-duration: 1.4s;
+        animation-name: daybreak;
+      }
+
+      body.animation-ready.warm {
+        animation-duration: 2s;
+        animation-name: goldenhour;
+      }
+
+      @keyframes goldenhour {
+        0% {
+          background-color: var(--day);
+        }
+        40% {
+          background-color: #ffe8b3;
+        }
+        100% {
+          background-color: var(--evening);
+        }
+      }
+
+      @keyframes daybreak {
+        0% {
+          background-color: var(--evening);
+        }
+        55% {
+          background-color: #fdf0d7;
+        }
+        100% {
+          background-color: var(--day);
+        }
+      }
+
+      .room {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        isolation: isolate;
+      }
+
+      .room > div {
+        pointer-events: none;
+      }
+
+      /* ---- light bouncing into the room ----------------------------------- */
+
+      .glow {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(309deg, var(--bounce-light), var(--bounce-light) 20%, transparent);
+        transition: background 1s var(--ease);
+        opacity: 0.5;
+      }
+
+      .glow-bounce {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(355deg, var(--bounce-light) 0%, transparent 30%);
+        transition: background 1s var(--ease);
+        opacity: 0.5;
+      }
+
+      /* ---- the shadow itself ----------------------------------------------
+         Everything inside is solid near-black; the container's opacity
+         flattens all overlaps into one even shadow, the way a real umbra
+         doesn't double-darken. The matrix3d is a perspective homography,
+         so the projection converges and stretches like light through a
+         window. */
+
+      .perspective {
+        position: absolute;
+        top: -30vh;
+        right: 0;
+        width: 80vw;
+        height: 130vh;
+        opacity: var(--shadow-day, 0.12);
+        transform-origin: top right;
+        transform-style: preserve-3d;
+        transform: matrix3d(0.76, -0.06, 0, 0.00075, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+        transition: transform 1.7s var(--ease), opacity 2.5s ease;
+      }
+
+      body.warm .perspective {
+        opacity: var(--shadow-warm, 0.21);
+        transform: matrix3d(0.84, 0.08, 0, 0.00032, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+      }
+
+      .leaves {
+        position: absolute;
+        right: -42%;
+        bottom: -4%;
+        width: calc(1600px * var(--canopy, 1));
+        height: calc(1400px * var(--canopy, 1));
+        filter: url(#wind);
+        animation: billow 8s ease-in-out infinite;
+      }
+
+      .leaves svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      @keyframes billow {
+        0% {
+          transform: perspective(400px) rotateX(0deg) rotateY(0deg) scale(1);
+        }
+        25% {
+          transform: perspective(400px) rotateX(1deg) rotateY(2deg) scale(1.02);
+        }
+        50% {
+          transform: perspective(400px) rotateX(-4deg) rotateY(-2deg) scale(0.97);
+        }
+        75% {
+          transform: perspective(400px) rotateX(1deg) rotateY(-1deg) scale(1.04);
+        }
+        100% {
+          transform: perspective(400px) rotateX(0deg) rotateY(0deg) scale(1);
+        }
+      }
+
+      .blinds {
+        position: absolute;
+        inset: 0;
+      }
+
+      .shutters {
+        display: flex;
+        flex-direction: column;
+        gap: var(--slat-gap, 60px);
+        transition: gap 1s var(--ease);
+      }
+
+      .shutter {
+        width: 100%;
+        height: var(--slat-h, 40px);
+        background-color: var(--shadow);
+        transition: height 1s var(--ease);
+      }
+
+      /* The blinds tilt as the sun drops: thicker slats, narrower light. */
+      body.warm .shutters {
+        gap: calc(var(--slat-gap, 60px) * 0.77);
+      }
+
+      body.warm .shutter {
+        height: calc(var(--slat-h, 40px) * 1.4);
+      }
+
+      .vertical {
+        position: absolute;
+        inset: 0;
+        left: 26%;
+        display: flex;
+        justify-content: space-around;
+      }
+
+      .vertical i {
+        width: 6px;
+        height: 100%;
+        background-color: var(--shadow);
+      }
+
+      /* ---- falling leaves (warm evenings) -------------------------------- */
+
+      .fall {
+        position: absolute;
+        inset: 0;
+      }
+
+      .fleaf {
+        position: absolute;
+        top: 0;
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        animation: fall var(--dur) ease-in-out forwards;
+      }
+
+      @keyframes fall {
+        0% {
+          opacity: 0;
+          transform: translate3d(0, -16vh, 0) rotate(0deg);
+        }
+        12% {
+          opacity: var(--op);
+        }
+        34% {
+          transform: translate3d(var(--sx1), 24vh, 0) rotate(var(--rr1));
+        }
+        62% {
+          opacity: var(--op);
+          transform: translate3d(var(--sx2), 60vh, 0) rotate(var(--rr2));
+        }
+        100% {
+          opacity: 0;
+          transform: translate3d(0, 112vh, 0) rotate(var(--rr3));
+        }
+      }
+
+      /* ---- diffusion: sharper near the wall, softer away from it --------- */
+
+      .haze {
+        position: absolute;
+        inset: 0;
+      }
+
+      .haze > i {
+        position: absolute;
+        inset: 0;
+        -webkit-backdrop-filter: blur(calc(var(--blur-amount) * var(--soft, 1)));
+        backdrop-filter: blur(calc(var(--blur-amount) * var(--soft, 1)));
+        -webkit-mask-image: linear-gradient(252deg, transparent, transparent var(--stop1), black var(--stop2), black);
+        mask-image: linear-gradient(252deg, transparent, transparent var(--stop1), black var(--stop2), black);
+      }
+
+      .haze > i:nth-child(1) {
+        --blur-amount: 6px;
+        --stop1: 0%;
+        --stop2: 0%;
+      }
+
+      .haze > i:nth-child(2) {
+        --blur-amount: 12px;
+        --stop1: 40%;
+        --stop2: 80%;
+      }
+
+      .haze > i:nth-child(3) {
+        --blur-amount: 48px;
+        --stop1: 40%;
+        --stop2: 70%;
+      }
+
+      .haze > i:nth-child(4) {
+        --blur-amount: 96px;
+        --stop1: 70%;
+        --stop2: 80%;
+      }
+
+      /* ---- film grain ----------------------------------------------------- */
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .grain::before {
+        content: "";
+        position: absolute;
+        inset: -5rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23g)'/%3E%3C/svg%3E");
+        background-size: 280px 280px;
+        opacity: var(--grain-op, 0.16);
+        animation: grainshift 0.9s steps(2) infinite;
+      }
+
+      @keyframes grainshift {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+        12% {
+          transform: translate3d(-1.4rem, 1.1rem, 0);
+        }
+        25% {
+          transform: translate3d(2.6rem, -2.2rem, 0);
+        }
+        37% {
+          transform: translate3d(-3.4rem, -0.8rem, 0);
+        }
+        50% {
+          transform: translate3d(1.2rem, 3.1rem, 0);
+        }
+        62% {
+          transform: translate3d(-2.2rem, -3.4rem, 0);
+        }
+        75% {
+          transform: translate3d(3.6rem, 1.8rem, 0);
+        }
+        87% {
+          transform: translate3d(-0.8rem, 2.4rem, 0);
+        }
+        100% {
+          transform: translate3d(1.8rem, -1.2rem, 0);
+        }
+      }
+
+      /* ---- arrival -------------------------------------------------------- */
+
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: #e9e2d6;
+        animation: lift 2s 0.2s var(--ease) forwards;
+      }
+
+      @keyframes lift {
+        to {
+          opacity: 0;
+          visibility: hidden;
+        }
+      }
+
+      /* ---- the toggle ----------------------------------------------------- */
+
+      .sun-control {
+        position: fixed;
+        z-index: 5;
+        top: max(18px, env(safe-area-inset-top));
+        left: max(18px, env(safe-area-inset-left));
+        display: grid;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        place-items: center;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        transition: color 2s var(--ease), opacity 0.2s ease;
+      }
+
+      .sun-control:hover {
+        opacity: 0.6;
+      }
+
+      body.warm .sun-control {
+        color: var(--ink-warm);
+      }
+
+      .sun-control svg {
+        width: 18px;
+        height: 18px;
+        overflow: visible;
+      }
+
+      .sun,
+      .rays,
+      .moon {
+        transform-origin: center;
+        transition: opacity 0.8s ease, transform 1.2s var(--ease);
+      }
+
+      .moon {
+        opacity: 0;
+        transform: rotate(-35deg) scale(0.6);
+      }
+
+      body.warm .sun,
+      body.warm .rays {
+        opacity: 0;
+        transform: rotate(35deg) scale(0.6);
+      }
+
+      body.warm .moon {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+      }
+
+      .sun-control:focus-visible {
+        outline: 1px solid currentColor;
+        outline-offset: 4px;
+        border-radius: 50%;
+      }
+
+      /* ---- the tuning panel ----------------------------------------------- */
+
+      .tune-toggle {
+        position: fixed;
+        z-index: 6;
+        top: max(18px, env(safe-area-inset-top));
+        right: max(18px, env(safe-area-inset-right));
+        display: grid;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        place-items: center;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        opacity: 0.55;
+        transition: opacity 0.2s ease, color 2s var(--ease);
+      }
+
+      .tune-toggle:hover,
+      .tune-toggle[aria-expanded='true'] {
+        opacity: 1;
+      }
+
+      body.warm .tune-toggle {
+        color: var(--ink-warm);
+      }
+
+      .tune-toggle svg {
+        width: 17px;
+        height: 17px;
+      }
+
+      .tune-toggle:focus-visible {
+        outline: 1px solid currentColor;
+        outline-offset: 4px;
+        border-radius: 50%;
+      }
+
+      .tune {
+        position: fixed;
+        z-index: 6;
+        top: max(50px, calc(env(safe-area-inset-top) + 34px));
+        right: max(16px, env(safe-area-inset-right));
+        width: 228px;
+        max-height: calc(100vh - 76px);
+        overflow: auto;
+        background: rgb(255 253 250 / 78%);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgb(60 54 44 / 14%);
+        border-radius: 10px;
+        padding: 8px 12px 12px;
+        font: 11px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: #6c665c;
+      }
+
+      .tune[hidden] {
+        display: none;
+      }
+
+      .tune h2 {
+        margin: 8px 0 2px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        opacity: 0.55;
+      }
+
+      .tune label {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0 8px;
+        align-items: center;
+        margin: 1px 0 5px;
+      }
+
+      .tune label b {
+        font-weight: 400;
+        opacity: 0.7;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .tune input[type='range'] {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 16px;
+        margin: 0;
+        accent-color: #a5764a;
+      }
+
+      .tune select {
+        grid-column: 2;
+        padding: 1px 4px;
+        border: 1px solid rgb(60 54 44 / 18%);
+        border-radius: 5px;
+        background: rgb(255 255 255 / 55%);
+        font: inherit;
+        color: inherit;
+      }
+
+      .tune .acts {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .tune .acts button {
+        flex: 1;
+        padding: 4px 0;
+        border: 1px solid rgb(60 54 44 / 18%);
+        border-radius: 6px;
+        background: rgb(255 255 255 / 55%);
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      .tune .acts button:hover {
+        background: #fff;
+      }
+
+      /* ---- smaller rooms -------------------------------------------------- */
+
+      @media (max-width: 640px) {
+        .perspective {
+          width: 130vw;
+          opacity: calc(var(--shadow-day, 0.12) * 1.25);
+        }
+
+        body.warm .perspective {
+          opacity: calc(var(--shadow-warm, 0.21) * 1.15);
+        }
+
+        .leaves {
+          right: -34%;
+          width: calc(980px * var(--canopy, 1));
+          height: calc(860px * var(--canopy, 1));
+        }
+
+        .shutters {
+          gap: calc(var(--slat-gap, 60px) * 0.8);
+        }
+
+        .shutter {
+          height: calc(var(--slat-h, 40px) * 0.85);
+        }
+
+        body.warm .shutters {
+          gap: calc(var(--slat-gap, 60px) * 0.63);
+        }
+
+        body.warm .shutter {
+          height: calc(var(--slat-h, 40px) * 1.15);
+        }
+
+        .haze > i:nth-child(1) {
+          --blur-amount: 4px;
+        }
+
+        .haze > i:nth-child(2) {
+          --blur-amount: 8px;
+          --stop1: 60%;
+          --stop2: 90%;
+        }
+
+        .haze > i:nth-child(3) {
+          --blur-amount: 24px;
+          --stop1: 60%;
+          --stop2: 85%;
+        }
+
+        .haze > i:nth-child(4) {
+          --blur-amount: 48px;
+          --stop1: 80%;
+          --stop2: 92%;
+        }
+      }
+
+      /* ---- stillness ------------------------------------------------------ */
+
+      @media (prefers-reduced-motion: reduce) {
+        .leaves {
+          filter: none;
+          animation: none;
+        }
+
+        .grain::before {
+          animation: none;
+        }
+
+        .veil {
+          animation-duration: 0.6s;
+          animation-delay: 0s;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="room" aria-label="Sunlight">
+      <div class="glow"></div>
+      <div class="glow-bounce"></div>
+      <div class="perspective">
+        <div class="leaves" id="leaves"></div>
+        <div class="blinds">
+          <div class="shutters">
+            <div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div>
+          </div>
+          <div class="vertical"><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="fall" id="fall"></div>
+      <div class="haze"><i></i><i></i><i></i><i></i></div>
+      <div class="grain"></div>
+      <div class="veil"></div>
+    </main>
+
+    <button class="sun-control" type="button" aria-label="Set evening light" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <g class="sun" fill="currentColor"><circle cx="12" cy="12" r="3.2" /></g>
+        <g class="rays" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.35">
+          <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4" />
+        </g>
+        <path class="moon" fill="currentColor" d="M15.9 17.8A7 7 0 0 1 8.2 8.1a7 7 0 1 0 7.7 9.7Z" />
+      </svg>
+    </button>
+
+    <button class="tune-toggle" type="button" aria-label="Tune the light" aria-expanded="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round">
+        <path d="M3 6h18M3 12h18M3 18h18" />
+        <circle cx="15" cy="6" r="2.4" fill="currentColor" stroke="none" />
+        <circle cx="8" cy="12" r="2.4" fill="currentColor" stroke="none" />
+        <circle cx="17" cy="18" r="2.4" fill="currentColor" stroke="none" />
+      </svg>
+    </button>
+    <div class="tune" id="tune" hidden></div>
+
+    <svg style="width: 0; height: 0; position: absolute;" aria-hidden="true">
+      <defs>
+        <filter id="wind" x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" numOctaves="2" seed="4">
+            <animate
+              attributeName="baseFrequency"
+              dur="16s"
+              keyTimes="0;0.33;0.66;1"
+              values="0.004 0.003;0.009 0.008;0.007 0.004;0.004 0.003"
+              repeatCount="indefinite"
+            />
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic">
+            <animate
+              id="windScale"
+              attributeName="scale"
+              dur="20s"
+              keyTimes="0;0.25;0.5;0.75;1"
+              values="40;52;70;52;40"
+              repeatCount="indefinite"
+            />
+          </feDisplacementMap>
+        </filter>
+      </defs>
+    </svg>
+
+    <script>
+      const stillness = matchMedia('(prefers-reduced-motion: reduce)');
+      const rand = (a, b) => a + Math.random() * (b - a);
+      const button = document.querySelector('.sun-control');
+      const theme = document.querySelector('meta[name="theme-color"]');
+
+      /* One toggle for the button, the space bar, and the wall itself. */
+      function toggle() {
+        document.body.classList.add('animation-ready');
+        const warm = document.body.classList.toggle('warm');
+        button.setAttribute('aria-pressed', String(warm));
+        button.setAttribute('aria-label', warm ? 'Set morning light' : 'Set evening light');
+        theme.setAttribute('content', warm ? '#f9c98b' : '#fffdfa');
+      }
+
+      document.addEventListener('click', (event) => {
+        if (event.target.closest('.tune, .tune-toggle')) return;
+        toggle();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space' && !event.target.closest('input, button, .tune')) {
+          event.preventDefault();
+          toggle();
+        }
+      });
+
+      /* ---- the foliage, grown fresh in the page --------------------------
+         A seeded branch-and-leaf generator: each branch is a bezier arc
+         entering from the right, with lens-shaped leaves alternating
+         along it and denser clusters at the tips. */
+      /* ---- leaf species ---------------------------------------------------
+         Each shape draws one leaf in local coordinates: stem at the
+         origin, tip toward +x, half-width w. `asp` is the width-to-length
+         ratio, `len` scales length, `cnt` scales how many grow. */
+      const SHAPE_FNS = {
+        lens(P, L, w) {
+          return `M${P(0, 0)}Q${P(L * 0.5, -w)} ${P(L, 0)}Q${P(L * 0.5, w)} ${P(0, 0)}Z`;
+        },
+        oak(P, L, w) {
+          return (
+            `M${P(0, 0)}` +
+            `Q${P(0.1 * L, -0.9 * w)} ${P(0.2 * L, -0.72 * w)}Q${P(0.29 * L, -0.38 * w)} ${P(0.37 * L, -0.52 * w)}` +
+            `Q${P(0.45 * L, -1.02 * w)} ${P(0.55 * L, -0.92 * w)}Q${P(0.62 * L, -0.42 * w)} ${P(0.68 * L, -0.55 * w)}` +
+            `Q${P(0.79 * L, -0.92 * w)} ${P(0.87 * L, -0.68 * w)}Q${P(0.97 * L, -0.32 * w)} ${P(L, 0)}` +
+            `Q${P(0.97 * L, 0.32 * w)} ${P(0.87 * L, 0.68 * w)}Q${P(0.79 * L, 0.92 * w)} ${P(0.68 * L, 0.55 * w)}` +
+            `Q${P(0.62 * L, 0.42 * w)} ${P(0.55 * L, 0.92 * w)}Q${P(0.45 * L, 1.02 * w)} ${P(0.37 * L, 0.52 * w)}` +
+            `Q${P(0.29 * L, 0.38 * w)} ${P(0.2 * L, 0.72 * w)}Q${P(0.1 * L, 0.9 * w)} ${P(0, 0)}Z`
+          );
+        },
+        maple(P, L, w) {
+          return (
+            `M${P(0, 0)}` +
+            `Q${P(0.06 * L, -0.5 * w)} ${P(0.3 * L, -1.1 * w)}Q${P(0.35 * L, -0.5 * w)} ${P(0.6 * L, -0.9 * w)}` +
+            `Q${P(0.62 * L, -0.3 * w)} ${P(L, 0)}` +
+            `Q${P(0.62 * L, 0.3 * w)} ${P(0.6 * L, 0.9 * w)}Q${P(0.35 * L, 0.5 * w)} ${P(0.3 * L, 1.1 * w)}` +
+            `Q${P(0.06 * L, 0.5 * w)} ${P(0, 0)}Z`
+          );
+        },
+        ginkgo(P, L, w) {
+          return (
+            `M${P(0, 0)}` +
+            `Q${P(0.35 * L, -0.16 * w)} ${P(0.8 * L, -0.8 * w)}Q${P(1.06 * L, -0.42 * w)} ${P(0.98 * L, -0.1 * w)}` +
+            `L${P(0.86 * L, 0)}L${P(0.98 * L, 0.1 * w)}` +
+            `Q${P(1.06 * L, 0.42 * w)} ${P(0.8 * L, 0.8 * w)}Q${P(0.35 * L, 0.16 * w)} ${P(0, 0)}Z`
+          );
+        },
+        pine(P, L, w, rnd) {
+          let d = '';
+          const n = 8 + Math.floor(rnd() * 4);
+          for (let i = 0; i < n; i++) {
+            const a = -0.95 + (1.9 * i) / (n - 1) + (rnd() - 0.5) * 0.12;
+            const l = L * (0.75 + rnd() * 0.35);
+            const ex = Math.cos(a) * l;
+            const ey = Math.sin(a) * l;
+            const nx = -Math.sin(a);
+            const ny = Math.cos(a);
+            const t = Math.max(1.6, L * 0.035);
+            d += `M${P(0, 0)}Q${P(ex / 2 + nx * t * 2, ey / 2 + ny * t * 2)} ${P(ex, ey)}Q${P(ex / 2 - nx * t, ey / 2 - ny * t)} ${P(0, 0)}Z`;
+          }
+          return d;
+        },
+      };
+
+      const SPECIES = {
+        beech: { shape: 'lens', asp: [0.34, 0.44], len: 1, cnt: 1 },
+        oak: { shape: 'oak', asp: [0.3, 0.38], len: 1.05, cnt: 0.9 },
+        maple: { shape: 'maple', asp: [0.45, 0.55], len: 1.05, cnt: 0.75 },
+        willow: { shape: 'lens', asp: [0.1, 0.15], len: 1.45, cnt: 1.5 },
+        ginkgo: { shape: 'ginkgo', asp: [0.5, 0.6], len: 0.85, cnt: 0.9 },
+        pine: { shape: 'pine', asp: [0.3, 0.3], len: 0.9, cnt: 0.55 },
+      };
+      const SPECIES_NAMES = Object.keys(SPECIES);
+
+      function makeLeaves(cfg) {
+        let s = Math.floor(cfg.seed) % 2147483647;
+        if (s <= 0) s += 2147483646;
+        const nrnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+        const nrand = (a, b) => a + nrnd() * (b - a);
+        const R = Math.round;
+        const petals = [];
+        const strokes = [];
+
+        function leafShape(x, y, L0, deg, sp) {
+          const kind = SPECIES[sp];
+          const L = L0 * kind.len;
+          const w = L * nrand(kind.asp[0], kind.asp[1]) * cfg.leafWidth;
+          const a = (deg * Math.PI) / 180;
+          const ca = Math.cos(a);
+          const sa = Math.sin(a);
+          const P = (lx, ly) => `${R(x + lx * ca - ly * sa)} ${R(y + lx * sa + ly * ca)}`;
+          petals.push(SHAPE_FNS[kind.shape](P, L, w, nrnd));
+        }
+
+        function bez(p0, p1, p2, p3, t) {
+          const u = 1 - t;
+          return [
+            u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0],
+            u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1],
+          ];
+        }
+
+        function branch(p0, p1, p2, p3, width, base, depth, sp) {
+          strokes.push(
+            `<path d='M${R(p0[0])} ${R(p0[1])}C${R(p1[0])} ${R(p1[1])} ${R(p2[0])} ${R(p2[1])} ${R(p3[0])} ${R(p3[1])}' fill='none' stroke='#000' stroke-width='${width}' stroke-linecap='round'/>`
+          );
+          const cnt = SPECIES[sp].cnt;
+          const n = 14;
+          for (let i = 2; i <= n; i++) {
+            const t = i / n;
+            const [x, y] = bez(p0, p1, p2, p3, t);
+            const [xa, ya] = bez(p0, p1, p2, p3, Math.min(1, t + 0.02));
+            const tangent = (Math.atan2(ya - y, xa - x) * 180) / Math.PI;
+            const k = Math.max(1, Math.round((2 + Math.floor(nrand(0, 2)) + (t > 0.75 ? 2 : 0)) * cfg.density * cnt));
+            for (let j = 0; j < k; j++) {
+              const side = (i + j) % 2 ? 1 : -1;
+              const L = base * cfg.leafSize * nrand(0.75, 1.35) * (0.7 + 0.5 * t);
+              leafShape(x + nrand(-18, 18), y + nrand(-18, 18), L, tangent + side * nrand(24, 78), sp);
+            }
+          }
+          for (let j = 0; j < Math.round(8 * cfg.density * cnt); j++) {
+            leafShape(p3[0] + nrand(-34, 34), p3[1] + nrand(-34, 34), base * cfg.leafSize * nrand(0.9, 1.45), nrand(0, 360), sp);
+          }
+          if (depth > 0) {
+            for (let q = 0; q < cfg.twigs; q++) {
+              const t = nrand(0.3, 0.8);
+              const [x, y] = bez(p0, p1, p2, p3, t);
+              const [xa, ya] = bez(p0, p1, p2, p3, Math.min(1, t + 0.02));
+              const tang = Math.atan2(ya - y, xa - x);
+              const dev = (nrnd() < 0.5 ? 1 : -1) * nrand(0.5, 1.1);
+              const len = nrand(160, 320);
+              const a = tang + dev;
+              branch(
+                [x, y],
+                [x + Math.cos(a - dev * 0.4) * len * 0.35, y + Math.sin(a - dev * 0.4) * len * 0.35],
+                [x + Math.cos(a - dev * 0.15) * len * 0.7, y + Math.sin(a - dev * 0.15) * len * 0.7],
+                [x + Math.cos(a) * len, y + Math.sin(a) * len],
+                Math.max(4, width - 4),
+                base * 0.82,
+                depth - 1,
+                sp
+              );
+            }
+          }
+        }
+
+        const anchors = [
+          [[1620, 1080], [1300, 1040], [1060, 860], [840, 690], 11, 122],
+          [[1620, 720], [1340, 640], [1150, 520], [930, 420], 10, 116],
+          [[1560, 1420], [1420, 1180], [1260, 990], [1060, 860], 10, 118],
+          [[1620, 380], [1420, 360], [1260, 250], [1080, 150], 8, 104],
+          [[1620, 1180], [1390, 1120], [1180, 950], [960, 810], 9, 112],
+          [[1620, 560], [1400, 510], [1230, 400], [1020, 300], 9, 108],
+          [[1620, 900], [1350, 850], [1140, 700], [920, 560], 10, 118],
+        ];
+        const chosen = SPECIES[cfg.species] ? cfg.species : cfg.species === 'mixed' ? 'mixed' : 'beech';
+        for (let b = 0; b < Math.min(cfg.branches, anchors.length); b++) {
+          const [p0, p1, p2, p3, w, base] = anchors[b];
+          const sp = chosen === 'mixed' ? SPECIES_NAMES[Math.floor(nrnd() * SPECIES_NAMES.length)] : chosen;
+          branch(p0, p1, p2, p3, w, base, 1, sp);
+        }
+        return `<svg viewBox='0 0 1600 1400' preserveAspectRatio='xMaxYMid slice' aria-hidden='true'>${strokes.join('')}<path fill='#000' d='${petals.join('')}'/></svg>`;
+      }
+
+      /* ---- tuning ---------------------------------------------------------
+         [key, label, min, max, step, default, kind]; kind is 'leaves'
+         (regrow the foliage), 'wind' (displacement strength), or a CSS
+         custom property, optionally with a unit. */
+      const TUNE = [
+        ['seed', 'seed', 1, 9999, 1, 7, 'leaves', 'leaves'],
+        ['species', 'species', 0, 0, 0, 'beech', 'leaves', null, ['beech', 'oak', 'maple', 'willow', 'ginkgo', 'pine', 'mixed']],
+        ['branches', 'branches', 2, 7, 1, 4, 'leaves', null],
+        ['twigs', 'twigs', 0, 4, 1, 2, 'leaves', null],
+        ['leafSize', 'leaf size', 0.5, 1.8, 0.05, 1, 'leaves', null],
+        ['leafWidth', 'leaf width', 0.6, 1.5, 0.05, 1, 'leaves', null],
+        ['density', 'density', 0.5, 2, 0.1, 1, 'leaves', null],
+        ['canopy', 'canopy size', 0.6, 1.6, 0.05, 1, 'css:--canopy', null],
+        ['wind', 'wind', 0, 2, 0.1, 1, 'wind', null],
+        ['shadowDay', 'shadow, day', 0.04, 0.3, 0.01, 0.12, 'css:--shadow-day', 'light'],
+        ['shadowWarm', 'shadow, evening', 0.08, 0.4, 0.01, 0.21, 'css:--shadow-warm', null],
+        ['soft', 'softness', 0.2, 2, 0.05, 1, 'css:--soft', null],
+        ['slatH', 'slat height', 20, 80, 1, 40, 'css:--slat-h:px', null],
+        ['slatGap', 'slat gap', 30, 90, 1, 60, 'css:--slat-gap:px', null],
+        ['grain', 'grain', 0, 0.4, 0.01, 0.16, 'css:--grain-op', null],
+      ];
+
+      const leaves = document.getElementById('leaves');
+      const windScale = document.getElementById('windScale');
+      const tunePanel = document.getElementById('tune');
+      const tuneToggle = document.querySelector('.tune-toggle');
+      const STORE = 'sunlight-tune';
+
+      const cfg = {};
+      for (const [key, , , , , def] of TUNE) cfg[key] = def;
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORE) || '{}');
+        for (const key in stored) if (key in cfg) cfg[key] = stored[key];
+      } catch {}
+
+      let growWait;
+      function apply(key, kind) {
+        if (kind === 'leaves') {
+          clearTimeout(growWait);
+          growWait = setTimeout(() => {
+            leaves.innerHTML = makeLeaves(cfg);
+          }, 120);
+        } else if (kind === 'wind') {
+          windScale.setAttribute('values', [40, 52, 70, 52, 40].map((v) => Math.round(v * cfg.wind)).join(';'));
+        } else {
+          const [, prop, unit] = kind.split(':');
+          document.documentElement.style.setProperty(prop, `${cfg[key]}${unit || ''}`);
+        }
+      }
+
+      function save() {
+        try {
+          localStorage.setItem(STORE, JSON.stringify(cfg));
+        } catch {}
+      }
+
+      /* Build the panel. */
+      for (const [key, label, min, max, step, , kind, group, options] of TUNE) {
+        if (group) {
+          const h = document.createElement('h2');
+          h.textContent = group;
+          tunePanel.appendChild(h);
+        }
+        const row = document.createElement('label');
+        const name = document.createElement('span');
+        name.textContent = label;
+
+        if (options) {
+          const select = document.createElement('select');
+          for (const opt of options) {
+            const o = document.createElement('option');
+            o.value = o.textContent = opt;
+            select.appendChild(o);
+          }
+          select.value = options.includes(cfg[key]) ? cfg[key] : options[0];
+          cfg[key] = select.value;
+          select.addEventListener('change', () => {
+            cfg[key] = select.value;
+            apply(key, kind);
+            save();
+          });
+          row.append(name, select);
+          tunePanel.appendChild(row);
+          continue;
+        }
+
+        const val = document.createElement('b');
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.min = min;
+        input.max = max;
+        input.step = step;
+        input.value = cfg[key];
+        const show = () => {
+          val.textContent = step >= 1 ? String(cfg[key]) : cfg[key].toFixed(2).replace(/0$/, '');
+        };
+        show();
+        input.addEventListener('input', () => {
+          cfg[key] = parseFloat(input.value);
+          show();
+          apply(key, kind);
+          save();
+        });
+        row.append(name, val, input);
+        tunePanel.appendChild(row);
+      }
+
+      const acts = document.createElement('div');
+      acts.className = 'acts';
+      const mkact = (text, fn) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = text;
+        b.addEventListener('click', fn);
+        acts.appendChild(b);
+        return b;
+      };
+      mkact('new leaves', () => {
+        cfg.seed = Math.floor(rand(1, 9999));
+        const input = tunePanel.querySelectorAll('input')[0];
+        input.value = cfg.seed;
+        input.dispatchEvent(new Event('input'));
+      });
+      const copyBtn = mkact('copy', async () => {
+        const json = JSON.stringify(cfg, null, 2);
+        try {
+          await navigator.clipboard.writeText(json);
+          copyBtn.textContent = 'copied';
+        } catch {
+          console.log(json);
+          copyBtn.textContent = 'in console';
+        }
+        setTimeout(() => (copyBtn.textContent = 'copy'), 1400);
+      });
+      mkact('reset', () => {
+        localStorage.removeItem(STORE);
+        location.reload();
+      });
+      tunePanel.appendChild(acts);
+
+      tuneToggle.addEventListener('click', () => {
+        tunePanel.hidden = !tunePanel.hidden;
+        tuneToggle.setAttribute('aria-expanded', String(!tunePanel.hidden));
+      });
+
+      /* First light. */
+      leaves.innerHTML = makeLeaves(cfg);
+      for (const [key, , , , , def, kind] of TUNE) {
+        if (kind !== 'leaves' && cfg[key] !== def) apply(key, kind);
+      }
+
+      /* Warm evenings: now and then a leaf lets go and drifts down,
+         shaped like the species outside. */
+      const fleafURIs = {};
+      function fleafURI(sp) {
+        if (!fleafURIs[sp]) {
+          const kind = SPECIES[sp];
+          const L = 100;
+          const w = L * ((kind.asp[0] + kind.asp[1]) / 2);
+          const P = (x, y) => `${Math.round(x)} ${Math.round(y)}`;
+          const d = SHAPE_FNS[kind.shape](P, L, w, Math.random);
+          const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='-8 -64 120 128'><path fill='#1a1917' d='${d}'/></svg>`;
+          fleafURIs[sp] = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+        }
+        return fleafURIs[sp];
+      }
+
+      const fall = document.getElementById('fall');
+      setInterval(() => {
+        if (!document.body.classList.contains('warm')) return;
+        if (stillness.matches || document.hidden) return;
+        if (fall.childElementCount > 8) return;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'fleaf';
+        const sp = SPECIES[cfg.species] ? cfg.species : SPECIES_NAMES[Math.floor(rand(0, SPECIES_NAMES.length))];
+        wrap.style.backgroundImage = fleafURI(sp);
+        const size = rand(48, 90);
+        wrap.style.width = `${size}px`;
+        wrap.style.height = `${size}px`;
+        wrap.style.left = `${rand(30, 96)}vw`;
+        wrap.style.setProperty('--op', String(rand(0.1, 0.16)));
+        wrap.style.setProperty('--sx1', `${rand(-70, -20)}px`);
+        wrap.style.setProperty('--sx2', `${rand(20, 70)}px`);
+        wrap.style.setProperty('--rr1', `${rand(30, 80)}deg`);
+        wrap.style.setProperty('--rr2', `${rand(-80, -30)}deg`);
+        wrap.style.setProperty('--rr3', `${rand(120, 220)}deg`);
+        wrap.style.setProperty('--dur', `${rand(9, 15)}s`);
+        wrap.addEventListener('animationend', () => wrap.remove());
+        fall.appendChild(wrap);
+      }, 5200);
+    </script>
+  </body>
+</html>
