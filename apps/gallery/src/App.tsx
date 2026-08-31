@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'motion/react';
 type Photo = {
   path: string;
   url: string;
+  srcSet?: string;
   title: string;
 };
 
@@ -13,21 +14,55 @@ type PhotoGroup = {
   photos: Photo[];
 };
 
-/** Drop an image into src/photos and it joins the gallery on the next build. */
+/**
+ * Drop images into a folder under src/photos and the folder becomes a roll on
+ * the next build. Loose images at the top level gather into "Loose frames".
+ */
+/** Responsive WebP renditions for the grid, generated at build time by vite-imagetools. */
+const THUMB_SRCSETS = import.meta.glob('./photos/**/*.{jpg,jpeg,JPG,JPEG}', {
+  eager: true,
+  query: '?w=320;640;1280&format=webp&as=srcset',
+  import: 'default',
+}) as Record<string, string>;
+
 const PHOTOS: Photo[] = Object.entries(
-  import.meta.glob('./photos/*.{jpg,jpeg,png,webp,avif,svg}', {
+  import.meta.glob('./photos/**/*.{jpg,jpeg,png,webp,avif,svg,JPG,JPEG,PNG,WEBP,AVIF}', {
     eager: true,
     query: '?url',
     import: 'default',
   }),
 )
   .sort(([a], [b]) => a.localeCompare(b))
-  .map(([path, url]) => ({ path, url: url as string, title: titleFrom(path) }));
+  .map(([path, url]) => ({
+    path,
+    url: url as string,
+    srcSet: THUMB_SRCSETS[path],
+    title: titleFrom(path),
+  }));
 
-const GROUPS: PhotoGroup[] = [
-  { id: 'roll-01', title: 'Roll 01', photos: PHOTOS.slice(0, 2) },
-  { id: 'roll-02', title: 'Roll 02', photos: PHOTOS.slice(2) },
-];
+/** Folders listed here come first, in this order; the rest follow alphabetically. */
+const GROUP_ORDER = ['hokkaido', 'guangzhou', 'osaka'];
+const LOOSE_GROUP = 'loose-frames';
+
+function folderFrom(path: string) {
+  const segments = path.split('/');
+  return segments.length > 3 ? segments[2] : LOOSE_GROUP;
+}
+
+const GROUPS: PhotoGroup[] = [...new Set(PHOTOS.map((photo) => folderFrom(photo.path)))]
+  .sort((a, b) => {
+    const rank = (folder: string) => {
+      if (folder === LOOSE_GROUP) return GROUP_ORDER.length + 1;
+      const index = GROUP_ORDER.indexOf(folder);
+      return index === -1 ? GROUP_ORDER.length : index;
+    };
+    return rank(a) - rank(b) || a.localeCompare(b);
+  })
+  .map((folder) => ({
+    id: folder,
+    title: folder === LOOSE_GROUP ? 'Loose frames' : titleFrom(`/${folder}`),
+    photos: PHOTOS.filter((photo) => folderFrom(photo.path) === folder),
+  }));
 
 const STACK_TRANSFORMS = [
   'translate3d(-40px, 18px, 0) rotate(-7deg)',
@@ -48,6 +83,14 @@ function titleFrom(path: string) {
 }
 
 const number = (index: number) => String(index + 1).padStart(2, '0');
+
+/** A small, stable tilt and drift per photo, so open rolls sit loose on the page. */
+function scatterFrom(path: string) {
+  let hash = 0;
+  for (const character of path) hash = (hash * 31 + character.charCodeAt(0)) % 1000003;
+  const pick = (shift: number, span: number) => (((hash >> shift) % 100) / 100) * span - span / 2;
+  return `translate3d(${pick(2, 12).toFixed(1)}px, ${pick(4, 16).toFixed(1)}px, 0) rotate(${pick(6, 4.2).toFixed(2)}deg)`;
+}
 
 export default function App() {
   const [openGroupId, setOpenGroupId] = useState<string | null>(GROUPS[0]?.id ?? null);
@@ -177,7 +220,7 @@ export default function App() {
                 >
                   <header className="group-heading">
                     <h2 id={`${group.id}-title`}>{group.title}</h2>
-                    <p>{group.photos.length} frames</p>
+                    <p>{group.photos.length} {group.photos.length === 1 ? 'frame' : 'frames'}</p>
                   </header>
 
                   <motion.div
@@ -199,11 +242,15 @@ export default function App() {
                           className="card-motion"
                           initial={false}
                           animate={{
-                            transform: isOpen || reduceMotion
+                            transform: reduceMotion
                               ? 'translate3d(0, 0, 0) rotate(0deg)'
-                              : STACK_TRANSFORMS[index % STACK_TRANSFORMS.length],
+                              : isOpen
+                                ? scatterFrom(photo.path)
+                                : STACK_TRANSFORMS[index % STACK_TRANSFORMS.length],
                           }}
-                          transition={reduceMotion ? { duration: 0 } : STACK_SPRING}
+                          transition={reduceMotion
+                            ? { duration: 0 }
+                            : { ...STACK_SPRING, delay: isOpen ? index * 0.045 : 0 }}
                         >
                           <button
                             className="print"
@@ -216,9 +263,15 @@ export default function App() {
                             <span className="print-image">
                               <img
                                 src={photo.url}
+                                srcSet={photo.srcSet}
+                                sizes="(max-width: 700px) 46vw, 222px"
                                 alt={photo.title}
-                                loading="eager"
+                                loading={isOpen ? 'eager' : 'lazy'}
                                 decoding="async"
+                                ref={(element) => {
+                                  if (element?.complete) element.classList.add('is-loaded');
+                                }}
+                                onLoad={(event) => event.currentTarget.classList.add('is-loaded')}
                               />
                             </span>
                           </button>
