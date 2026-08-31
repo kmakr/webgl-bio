@@ -1,0 +1,4 @@
+# Convenience paths on the root domain to the subdomain sites.
+/gallery https://gallery.theoazriel.com 301
+/gallery/* https://gallery.theoazriel.com 301
+/home https://home.theoazriel.com 301

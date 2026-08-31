@@ -1,0 +1,5 @@
+# Traffic arriving on the legacy theoazriel.com/gallery* route (see
+# wrangler.toml) belongs on the subdomain. These paths never occur on
+# gallery.theoazriel.com itself.
+/gallery https://gallery.theoazriel.com 301
+/gallery/* https://gallery.theoazriel.com/:splat 301
