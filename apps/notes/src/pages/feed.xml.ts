@@ -2,8 +2,9 @@ import rss from '@astrojs/rss';
 import { getCollection } from 'astro:content';
 
 export async function GET(context: { site: URL }) {
-  const notes = (await getCollection('notes', ({ data }) => !data.draft))
-    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  const notes = (await getCollection('notes', ({ data }) => !data.draft)).sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  );
 
   return rss({
     title: 'Theo Azriel — Notes',

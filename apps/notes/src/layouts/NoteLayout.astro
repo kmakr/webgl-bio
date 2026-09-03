@@ -7,18 +7,22 @@ const dateText = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: 'short',
   year: 'numeric',
-}).format(date).replace(/ (\d{4})$/, ', $1');
+})
+  .format(date)
+  .replace(/ (\d{4})$/, ', $1');
 ---
 
 <BaseLayout title={`${title} — Theo Azriel`} description={summary} noindex={draft}>
   <SiteHeader />
   <main>
     <article class="post">
-      {draft && (
-        <p class="draft-banner">
-          Draft preview — this note is unlisted until <code>draft: false</code>.
-        </p>
-      )}
+      {
+        draft && (
+          <p class="draft-banner">
+            Draft preview — this note is unlisted until <code>draft: false</code>.
+          </p>
+        )
+      }
       <h1>{title}</h1>
       <p class="note-summary">{summary}</p>
       <p class="note-meta"><time datetime={date.toISOString()}>{dateText}</time></p>

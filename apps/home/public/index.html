@@ -100,7 +100,12 @@
       .glow {
         position: absolute;
         inset: 0;
-        background: linear-gradient(309deg, var(--bounce-light), var(--bounce-light) 20%, transparent);
+        background: linear-gradient(
+          309deg,
+          var(--bounce-light),
+          var(--bounce-light) 20%,
+          transparent
+        );
         transition: background 1s var(--ease);
         opacity: 0.5;
       }
@@ -130,7 +135,9 @@
         transform-origin: top right;
         transform-style: preserve-3d;
         transform: matrix3d(0.76, -0.06, 0, 0.00075, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-        transition: transform 1.7s var(--ease), opacity 2.5s ease;
+        transition:
+          transform 1.7s var(--ease),
+          opacity 2.5s ease;
       }
 
       body.warm .perspective {
@@ -281,8 +288,20 @@
         inset: 0;
         -webkit-backdrop-filter: blur(calc(var(--blur-amount) * var(--soft, 1)));
         backdrop-filter: blur(calc(var(--blur-amount) * var(--soft, 1)));
-        -webkit-mask-image: linear-gradient(252deg, transparent, transparent var(--stop1), black var(--stop2), black);
-        mask-image: linear-gradient(252deg, transparent, transparent var(--stop1), black var(--stop2), black);
+        -webkit-mask-image: linear-gradient(
+          252deg,
+          transparent,
+          transparent var(--stop1),
+          black var(--stop2),
+          black
+        );
+        mask-image: linear-gradient(
+          252deg,
+          transparent,
+          transparent var(--stop1),
+          black var(--stop2),
+          black
+        );
       }
 
       .haze > i:nth-child(1) {
@@ -318,7 +337,7 @@
       }
 
       .grain::before {
-        content: "";
+        content: '';
         position: absolute;
         inset: -5rem;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23g)'/%3E%3C/svg%3E");
@@ -389,7 +408,9 @@
         background: transparent;
         color: var(--ink);
         cursor: pointer;
-        transition: color 2s var(--ease), opacity 0.2s ease;
+        transition:
+          color 2s var(--ease),
+          opacity 0.2s ease;
       }
 
       .sun-control:hover {
@@ -410,7 +431,9 @@
       .rays,
       .moon {
         transform-origin: center;
-        transition: opacity 0.8s ease, transform 1.2s var(--ease);
+        transition:
+          opacity 0.8s ease,
+          transform 1.2s var(--ease);
       }
 
       .moon {
@@ -452,7 +475,9 @@
         color: var(--ink);
         cursor: pointer;
         opacity: 0.55;
-        transition: opacity 0.2s ease, color 2s var(--ease);
+        transition:
+          opacity 0.2s ease,
+          color 2s var(--ease);
       }
 
       .tune-toggle:hover,
@@ -489,11 +514,16 @@
         border: 1px solid rgb(60 54 44 / 14%);
         border-radius: 10px;
         padding: 8px 12px 12px;
-        font: 11px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
+        font:
+          11px/1.7 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
         color: #6c665c;
       }
 
-      .tune[hidden] {
+      .tune[hidden],
+      .tune label[hidden] {
         display: none;
       }
 
@@ -646,7 +676,29 @@
         <div class="leaves"><div class="foliage" id="leaves"></div></div>
         <div class="blinds">
           <div class="shutters">
-            <div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div><div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
+            <div class="shutter"></div>
           </div>
           <div class="vertical"><i></i><i></i></div>
         </div>
@@ -660,15 +712,34 @@
     <button class="sun-control" type="button" aria-label="Set evening light" aria-pressed="false">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <g class="sun" fill="currentColor"><circle cx="12" cy="12" r="3.2" /></g>
-        <g class="rays" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.35">
-          <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4" />
+        <g
+          class="rays"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-width="1.35"
+        >
+          <path
+            d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"
+          />
         </g>
-        <path class="moon" fill="currentColor" d="M15.9 17.8A7 7 0 0 1 8.2 8.1a7 7 0 1 0 7.7 9.7Z" />
+        <path
+          class="moon"
+          fill="currentColor"
+          d="M15.9 17.8A7 7 0 0 1 8.2 8.1a7 7 0 1 0 7.7 9.7Z"
+        />
       </svg>
     </button>
 
     <button class="tune-toggle" type="button" aria-label="Tune the light" aria-expanded="false">
-      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round">
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.35"
+        stroke-linecap="round"
+      >
         <path d="M3 6h18M3 12h18M3 18h18" />
         <circle cx="15" cy="6" r="2.4" fill="currentColor" stroke="none" />
         <circle cx="8" cy="12" r="2.4" fill="currentColor" stroke="none" />
@@ -677,10 +748,16 @@
     </button>
     <div class="tune" id="tune" hidden></div>
 
-    <svg style="width: 0; height: 0; position: absolute;" aria-hidden="true">
+    <svg style="width: 0; height: 0; position: absolute" aria-hidden="true">
       <defs>
         <filter id="wind" x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence id="windTurb" type="fractalNoise" baseFrequency="0.008 0.006" numOctaves="2" seed="4" />
+          <feTurbulence
+            id="windTurb"
+            type="fractalNoise"
+            baseFrequency="0.008 0.006"
+            numOctaves="2"
+            seed="4"
+          />
           <feDisplacementMap id="windDisp" in="SourceGraphic" scale="20" />
         </filter>
       </defs>
@@ -809,7 +886,7 @@
 
         function branch(p0, p1, p2, p3, width, base, depth, sp) {
           strokes.push(
-            `<path d='M${R(p0[0])} ${R(p0[1])}C${R(p1[0])} ${R(p1[1])} ${R(p2[0])} ${R(p2[1])} ${R(p3[0])} ${R(p3[1])}' fill='none' stroke='#000' stroke-width='${width}' stroke-linecap='round'/>`
+            `<path d='M${R(p0[0])} ${R(p0[1])}C${R(p1[0])} ${R(p1[1])} ${R(p2[0])} ${R(p2[1])} ${R(p3[0])} ${R(p3[1])}' fill='none' stroke='#000' stroke-width='${width}' stroke-linecap='round'/>`,
           );
           const cnt = SPECIES[sp].cnt;
           const n = 14;
@@ -818,15 +895,30 @@
             const [x, y] = bez(p0, p1, p2, p3, t);
             const [xa, ya] = bez(p0, p1, p2, p3, Math.min(1, t + 0.02));
             const tangent = (Math.atan2(ya - y, xa - x) * 180) / Math.PI;
-            const k = Math.max(1, Math.round((2 + Math.floor(nrand(0, 2)) + (t > 0.75 ? 2 : 0)) * cfg.density * cnt));
+            const k = Math.max(
+              1,
+              Math.round((2 + Math.floor(nrand(0, 2)) + (t > 0.75 ? 2 : 0)) * cfg.density * cnt),
+            );
             for (let j = 0; j < k; j++) {
               const side = (i + j) % 2 ? 1 : -1;
               const L = base * cfg.leafSize * nrand(0.75, 1.35) * (0.7 + 0.5 * t);
-              leafShape(x + nrand(-18, 18), y + nrand(-18, 18), L, tangent + side * nrand(24, 78), sp);
+              leafShape(
+                x + nrand(-18, 18),
+                y + nrand(-18, 18),
+                L,
+                tangent + side * nrand(24, 78),
+                sp,
+              );
             }
           }
           for (let j = 0; j < Math.round(8 * cfg.density * cnt); j++) {
-            leafShape(p3[0] + nrand(-34, 34), p3[1] + nrand(-34, 34), base * cfg.leafSize * nrand(0.9, 1.45), nrand(0, 360), sp);
+            leafShape(
+              p3[0] + nrand(-34, 34),
+              p3[1] + nrand(-34, 34),
+              base * cfg.leafSize * nrand(0.9, 1.45),
+              nrand(0, 360),
+              sp,
+            );
           }
           if (depth > 0) {
             for (let q = 0; q < cfg.twigs; q++) {
@@ -839,13 +931,19 @@
               const a = tang + dev;
               branch(
                 [x, y],
-                [x + Math.cos(a - dev * 0.4) * len * 0.35, y + Math.sin(a - dev * 0.4) * len * 0.35],
-                [x + Math.cos(a - dev * 0.15) * len * 0.7, y + Math.sin(a - dev * 0.15) * len * 0.7],
+                [
+                  x + Math.cos(a - dev * 0.4) * len * 0.35,
+                  y + Math.sin(a - dev * 0.4) * len * 0.35,
+                ],
+                [
+                  x + Math.cos(a - dev * 0.15) * len * 0.7,
+                  y + Math.sin(a - dev * 0.15) * len * 0.7,
+                ],
                 [x + Math.cos(a) * len, y + Math.sin(a) * len],
                 Math.max(4, width - 4),
                 base * 0.82,
                 depth - 1,
-                sp
+                sp,
               );
             }
           }
@@ -860,10 +958,15 @@
           [[1620, 560], [1400, 510], [1230, 400], [1020, 300], 9, 108],
           [[1620, 900], [1350, 850], [1140, 700], [920, 560], 10, 118],
         ];
-        const chosen = SPECIES[cfg.species] ? cfg.species : cfg.species === 'mixed' ? 'mixed' : 'beech';
+        const chosen = SPECIES[cfg.species]
+          ? cfg.species
+          : cfg.species === 'mixed'
+            ? 'mixed'
+            : 'beech';
         for (let b = 0; b < Math.min(cfg.branches, anchors.length); b++) {
           const [p0, p1, p2, p3, w, base] = anchors[b];
-          const sp = chosen === 'mixed' ? SPECIES_NAMES[Math.floor(nrnd() * SPECIES_NAMES.length)] : chosen;
+          const sp =
+            chosen === 'mixed' ? SPECIES_NAMES[Math.floor(nrnd() * SPECIES_NAMES.length)] : chosen;
           branch(p0, p1, p2, p3, w, base, 1, sp);
         }
         return `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1400' preserveAspectRatio='xMaxYMid slice' aria-hidden='true'>${strokes.join('')}<path fill='#000' d='${petals.join('')}'/></svg>`;
@@ -875,7 +978,17 @@
          custom property, optionally with a unit. */
       const TUNE = [
         ['seed', 'seed', 1, 9999, 1, 7, 'leaves', 'leaves'],
-        ['species', 'species', 0, 0, 0, 'beech', 'leaves', null, ['beech', 'oak', 'maple', 'willow', 'ginkgo', 'pine', 'mixed']],
+        [
+          'species',
+          'species',
+          0,
+          0,
+          0,
+          'beech',
+          'leaves',
+          null,
+          ['beech', 'oak', 'maple', 'willow', 'ginkgo', 'pine', 'mixed'],
+        ],
         ['branches', 'branches', 2, 7, 1, 4, 'leaves', null],
         ['twigs', 'twigs', 0, 4, 1, 2, 'leaves', null],
         ['leafSize', 'leaf size', 0.5, 1.8, 0.05, 1, 'leaves', null],
@@ -975,7 +1088,16 @@
          scale with the detail. */
       const turb = document.getElementById('windTurb');
       const disp = document.getElementById('windDisp');
-      const GUST = { dur: 16000, times: [0, 0.33, 0.66, 1], values: [[0.004, 0.003], [0.009, 0.008], [0.007, 0.004], [0.004, 0.003]] };
+      const GUST = {
+        dur: 16000,
+        times: [0, 0.33, 0.66, 1],
+        values: [
+          [0.004, 0.003],
+          [0.009, 0.008],
+          [0.007, 0.004],
+          [0.004, 0.003],
+        ],
+      };
       const SWAY = { dur: 20000, times: [0, 0.25, 0.5, 0.75, 1], values: [40, 52, 70, 52, 40] };
       const WIND_STEP = 1000 / 24;
       const mix = (a, b, f) => a + (b - a) * f;
@@ -1038,6 +1160,8 @@
           tunePanel.appendChild(h);
         }
         const row = document.createElement('label');
+        /* Detail only means something when the foliage goes through a canvas. */
+        if (key === 'detail' && !ctx) row.hidden = true;
         const name = document.createElement('span');
         name.textContent = label;
 
@@ -1150,7 +1274,9 @@
 
         const wrap = document.createElement('div');
         wrap.className = 'fleaf';
-        const sp = SPECIES[cfg.species] ? cfg.species : SPECIES_NAMES[Math.floor(rand(0, SPECIES_NAMES.length))];
+        const sp = SPECIES[cfg.species]
+          ? cfg.species
+          : SPECIES_NAMES[Math.floor(rand(0, SPECIES_NAMES.length))];
         wrap.style.backgroundImage = fleafURI(sp);
         const size = rand(48, 90);
         wrap.style.width = `${size}px`;

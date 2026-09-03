@@ -75,7 +75,10 @@ const STACK_SPRING = { type: 'spring' as const, duration: 0.5, bounce: 0.16 };
 const GROUP_FOCUS_LINE = 0.5;
 
 function titleFrom(path: string) {
-  const stem = path.split('/').pop()!.replace(/\.[^.]+$/, '');
+  const stem = path
+    .split('/')
+    .pop()!
+    .replace(/\.[^.]+$/, '');
   return stem
     .replace(/^\d+[-_]?/, '')
     .replace(/[-_]+/g, ' ')
@@ -107,10 +110,12 @@ export default function App() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setExpandedIndex(null);
       if (event.key === 'ArrowRight') {
-        setExpandedIndex((current) => current === null ? null : (current + 1) % PHOTOS.length);
+        setExpandedIndex((current) => (current === null ? null : (current + 1) % PHOTOS.length));
       }
       if (event.key === 'ArrowLeft') {
-        setExpandedIndex((current) => current === null ? null : (current - 1 + PHOTOS.length) % PHOTOS.length);
+        setExpandedIndex((current) =>
+          current === null ? null : (current - 1 + PHOTOS.length) % PHOTOS.length,
+        );
       }
     };
 
@@ -137,7 +142,7 @@ export default function App() {
           }
         });
 
-        setOpenGroupId((current) => current === nextGroupId ? current : nextGroupId);
+        setOpenGroupId((current) => (current === nextGroupId ? current : nextGroupId));
       });
     };
 
@@ -156,9 +161,8 @@ export default function App() {
     const section = groupRefs.current[groupId];
     if (!section) return;
 
-    const target = window.scrollY
-      + section.getBoundingClientRect().top
-      - window.innerHeight * GROUP_FOCUS_LINE;
+    const target =
+      window.scrollY + section.getBoundingClientRect().top - window.innerHeight * GROUP_FOCUS_LINE;
 
     window.scrollTo({
       top: Math.max(0, target),
@@ -215,12 +219,16 @@ export default function App() {
                   className={`photo-group ${isOpen ? 'is-open' : 'is-closed'}`}
                   id={group.id}
                   key={group.id}
-                  ref={(element) => { groupRefs.current[group.id] = element; }}
+                  ref={(element) => {
+                    groupRefs.current[group.id] = element;
+                  }}
                   aria-labelledby={`${group.id}-title`}
                 >
                   <header className="group-heading">
                     <h2 id={`${group.id}-title`}>{group.title}</h2>
-                    <p>{group.photos.length} {group.photos.length === 1 ? 'frame' : 'frames'}</p>
+                    <p>
+                      {group.photos.length} {group.photos.length === 1 ? 'frame' : 'frames'}
+                    </p>
                   </header>
 
                   <motion.div
@@ -248,9 +256,11 @@ export default function App() {
                                 ? scatterFrom(photo.path)
                                 : STACK_TRANSFORMS[index % STACK_TRANSFORMS.length],
                           }}
-                          transition={reduceMotion
-                            ? { duration: 0 }
-                            : { ...STACK_SPRING, delay: isOpen ? index * 0.045 : 0 }}
+                          transition={
+                            reduceMotion
+                              ? { duration: 0 }
+                              : { ...STACK_SPRING, delay: isOpen ? index * 0.045 : 0 }
+                          }
                         >
                           <button
                             className="print"
@@ -295,7 +305,6 @@ export default function App() {
                       </button>
                     )}
                   </motion.div>
-
                 </section>
               );
             })}
@@ -316,7 +325,9 @@ export default function App() {
           <img src={expandedPhoto.url} alt={expandedPhoto.title} />
           <p className="lightbox-caption">
             <span>{expandedPhoto.title}</span>
-            <span>{number(expandedIndex)} / {number(PHOTOS.length - 1)}</span>
+            <span>
+              {number(expandedIndex)} / {number(PHOTOS.length - 1)}
+            </span>
           </p>
           <button
             type="button"
