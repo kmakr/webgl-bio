@@ -2,8 +2,9 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-const notes = (await getCollection('notes', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const notes = (await getCollection('notes', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
 ---
 
 <BaseLayout>
@@ -28,18 +29,21 @@ const notes = (await getCollection('notes', ({ data }) => !data.draft))
       </a>
       <a class="item" href="https://onisolo.theoazriel.com">
         <span>Onisolo</span>
-        <span class="muted">A monochrome sword game played on a living sheet of ink and paper.</span>
+        <span class="muted">A monochrome sword game played on a living sheet of ink and paper.</span
+        >
       </a>
     </section>
 
     <section aria-label="Notes">
       <h2>Notes</h2>
-      {notes.map((note) => (
-        <a class="item" href={`/notes/${note.id}`}>
-          <span>{note.data.title}</span>
-          <span class="muted">{note.data.summary}</span>
-        </a>
-      ))}
+      {
+        notes.map((note) => (
+          <a class="item" href={`/notes/${note.id}`}>
+            <span>{note.data.title}</span>
+            <span class="muted">{note.data.summary}</span>
+          </a>
+        ))
+      }
     </section>
 
     <section aria-label="Elsewhere">

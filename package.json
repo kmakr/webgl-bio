@@ -9,12 +9,27 @@
     "build": "npm run build --workspaces --if-present",
     "build:gallery": "npm run build --workspace @theo/gallery",
     "build:notes": "npm run build --workspace @theo/notes",
+    "check": "npm run format:check && npm run lint && npm run build && npm run check:workers",
+    "check:workers": "wrangler deploy --dry-run --config apps/home/wrangler.toml && wrangler deploy --dry-run --config apps/cms-auth/wrangler.toml",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
     "dev:home": "npm run dev --workspace @theo/home",
-    "dev:gallery": "npm run dev --workspace @theo/gallery",
     "dev:notes": "npm run dev --workspace @theo/notes",
+    "dev:gallery": "npm run dev --workspace @theo/gallery",
+    "dev:cms-auth": "npm run dev --workspace @theo/cms-auth",
     "deploy:home": "npm run deploy --workspace @theo/home",
     "deploy:gallery": "npm run deploy --workspace @theo/gallery",
     "deploy:notes": "npm run deploy --workspace @theo/notes",
     "deploy:cms-auth": "npm run deploy --workspace @theo/cms-auth"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript-eslint": "^8.69.0"
   }
 }

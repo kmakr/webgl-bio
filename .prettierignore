@@ -1,0 +1,7 @@
+node_modules
+dist
+.astro
+.wrangler
+.claude
+package-lock.json
+apps/gallery/src/photos

@@ -19,10 +19,7 @@
  */
 
 /** Only these sites may receive a token from the popup handshake. */
-const ALLOWED_ORIGINS = [
-  'https://theoazriel.com',
-  'https://notes.theoazriel.com',
-];
+const ALLOWED_ORIGINS = ['https://theoazriel.com', 'https://notes.theoazriel.com'];
 
 const GITHUB_AUTHORIZE = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN = 'https://github.com/login/oauth/access_token';
@@ -62,8 +59,9 @@ function startLogin(url, env) {
 async function finishLogin(request, url, env) {
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
-  const cookieState = (request.headers.get('Cookie') ?? '')
-    .match(/(?:^|;\s*)oauth_state=([^;]+)/)?.[1];
+  const cookieState = (request.headers.get('Cookie') ?? '').match(
+    /(?:^|;\s*)oauth_state=([^;]+)/,
+  )?.[1];
 
   if (!code) return popupError('GitHub sent no code.');
   if (!state || state !== cookieState) {
@@ -84,7 +82,9 @@ async function finishLogin(request, url, env) {
   });
   const data = await res.json().catch(() => ({}));
   if (!data.access_token) {
-    return popupError(`GitHub refused the exchange: ${data.error_description ?? 'no token returned'}`);
+    return popupError(
+      `GitHub refused the exchange: ${data.error_description ?? 'no token returned'}`,
+    );
   }
   return popupResult('success', { token: data.access_token, provider: 'github' });
 }
