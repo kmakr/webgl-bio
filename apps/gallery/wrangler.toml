@@ -17,8 +17,7 @@ not_found_handling = "404-page"
 pattern = "gallery.theoazriel.com"
 custom_domain = true
 
-# Legacy route from the pre-subdomain era. Wrangler cannot delete it, so it
-# stays declared here, and _redirects sends its traffic to the subdomain.
-[[routes]]
-pattern = "theoazriel.com/gallery*"
-zone_name = "theoazriel.com"
+# A legacy route, theoazriel.com/gallery*, still points at this Worker from
+# the pre-subdomain era. It is not declared here: the deploy token has no
+# zone permissions, so declaring it failed every deploy, and wrangler leaves
+# undeclared routes alone. _redirects sends its traffic to the subdomain.
