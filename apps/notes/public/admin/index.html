@@ -10,7 +10,16 @@
   <body>
     <!-- Sveltia CMS: the whole editor is this one script. It reads
          ./config.yml, signs in through the cms-auth Worker, and commits
-         Markdown straight to the GitHub repo — no server here. -->
-    <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js" type="module"></script>
+         Markdown straight to the GitHub repo — no server here.
+         The version is pinned and the hash checked, since this script
+         ends up with write access to the repo. To upgrade: bump the
+         version, then set integrity to the new file's sha384, e.g.
+         curl -sL <url> | openssl dgst -sha384 -binary | openssl base64 -A -->
+    <script
+      src="https://unpkg.com/@sveltia/cms@0.205.2/dist/sveltia-cms.js"
+      integrity="sha384-J/bAsONSS23VG29sRtVww67L4pgNZeEEnpyWuzPE2MSuYwKCh3VucBJ91fUT0cTg"
+      crossorigin="anonymous"
+      type="module"
+    ></script>
   </body>
 </html>
