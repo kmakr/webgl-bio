@@ -1,4 +1,4 @@
-# gallery.theoazriel.com — the cloth, showing photographs.
+# gallery.theoazriel.com — the photographs.
 #
 # Deployed fresh as "theo-gallery"; the old root-domain Worker for this app
 # was the auto-named "wild-sun-9904", which can be deleted once this one is
@@ -10,6 +10,8 @@ workers_dev = true
 
 [assets]
 directory = "./dist"
+html_handling = "drop-trailing-slash"
+not_found_handling = "404-page"
 
 [[routes]]
 pattern = "gallery.theoazriel.com"
