@@ -154,10 +154,7 @@
         animation: billow 8s ease-in-out infinite;
       }
 
-      /* The foliage is drawn once, then pushed through the wind filter
-         into a small canvas that the compositor scales up: it's a soft
-         shadow, so a fraction of the resolution reads the same, and the
-         filter no longer re-runs at full size every frame. */
+      /* A low-resolution WebGL texture carries the soft leaf shadows. */
       .foliage {
         position: absolute;
         inset: 0;
@@ -168,11 +165,6 @@
         display: block;
         width: 100%;
         height: 100%;
-      }
-
-      /* Browsers without canvas filters filter the element itself. */
-      .foliage.dom {
-        filter: url(#wind);
       }
 
       .foliage.still {
@@ -748,22 +740,7 @@
     </button>
     <div class="tune" id="tune" hidden></div>
 
-    <svg style="width: 0; height: 0; position: absolute" aria-hidden="true">
-      <defs>
-        <filter id="wind" x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence
-            id="windTurb"
-            type="fractalNoise"
-            baseFrequency="0.008 0.006"
-            numOctaves="2"
-            seed="4"
-          />
-          <feDisplacementMap id="windDisp" in="SourceGraphic" scale="20" />
-        </filter>
-      </defs>
-    </svg>
-
-    <script>
+    <script type="module">
       const stillness = matchMedia('(prefers-reduced-motion: reduce)');
       const rand = (a, b) => a + Math.random() * (b - a);
       const button = document.querySelector('.sun-control');
@@ -969,7 +946,7 @@
             chosen === 'mixed' ? SPECIES_NAMES[Math.floor(nrnd() * SPECIES_NAMES.length)] : chosen;
           branch(p0, p1, p2, p3, w, base, 1, sp);
         }
-        return `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1400' preserveAspectRatio='xMaxYMid slice' aria-hidden='true'>${strokes.join('')}<path fill='#000' d='${petals.join('')}'/></svg>`;
+        return `<svg xmlns='http://www.w3.org/2000/svg' width='1600' height='1400' viewBox='0 0 1600 1400' preserveAspectRatio='xMaxYMid slice' aria-hidden='true'>${strokes.join('')}<path fill='#000' d='${petals.join('')}'/></svg>`;
       }
 
       /* ---- tuning ---------------------------------------------------------
@@ -1017,123 +994,75 @@
         for (const key in stored) if (key in cfg) cfg[key] = stored[key];
       } catch {}
 
-      /* ---- rendering the foliage -------------------------------------
-         With canvas filters, the leaves are rasterised once, and each
-         gust redraws them through the wind filter into a canvas that is
-         only `detail` of the element's size. Without them, the SVG goes
-         straight into the page and the filter runs on the element. */
-      const FULL = [1600, 1400];
-      let ctx = null;
-      let canvas = null;
-      let plate = null;
+      const canvas = document.createElement('canvas');
+      canvas.setAttribute('aria-hidden', 'true');
+      let renderer = null;
       try {
-        const probe = document.createElement('canvas').getContext('2d');
-        probe.filter = 'url(#wind)';
-        if (probe.filter === 'url(#wind)') {
-          canvas = document.createElement('canvas');
-          ctx = canvas.getContext('2d');
-          foliage.appendChild(canvas);
-        }
+        const { createShadows } = await import('./shadows.js');
+        renderer = createShadows(canvas);
+        foliage.appendChild(canvas);
       } catch {}
-      if (!ctx) foliage.classList.add('dom');
-
-      const isStill = () => stillness.matches || cfg.wind === 0;
-
-      function paint() {
-        if (!ctx || !plate) return;
-        const w = Math.round(FULL[0] * cfg.detail);
-        const h = Math.round(FULL[1] * cfg.detail);
-        if (canvas.width !== w || canvas.height !== h) {
-          canvas.width = w;
-          canvas.height = h;
-        }
-        ctx.clearRect(0, 0, w, h);
-        /* Re-set the filter so the canvas picks up the changed gust. */
-        ctx.filter = 'none';
-        ctx.filter = isStill() ? 'none' : 'url(#wind)';
-        ctx.drawImage(plate, 0, 0, w, h);
-      }
-
+      const isStill = () => stillness.matches || cfg.wind === 0 || !renderer;
+      let leafVersion = 0;
       let growWait;
+      let windFrame = 0;
+      let windLast = null;
+      let elapsed = 0;
+      function paint() {
+        renderer?.draw(elapsed, isStill() ? 0 : cfg.wind, cfg.detail);
+      }
+      function fallback(svg) {
+        renderer?.dispose();
+        renderer = null;
+        foliage.innerHTML = svg;
+        document.querySelector('.leaves').style.animation = 'none';
+        wind();
+      }
       function grow() {
         const svg = makeLeaves(cfg);
-        if (!ctx) {
-          foliage.innerHTML = svg;
+        const version = ++leafVersion;
+        if (!renderer) {
+          fallback(svg);
           return;
         }
         const img = new Image();
         img.onload = () => {
-          plate = document.createElement('canvas');
-          plate.width = FULL[0];
-          plate.height = FULL[1];
-          plate.getContext('2d').drawImage(img, 0, 0, FULL[0], FULL[1]);
-          paint();
+          if (version !== leafVersion || !renderer) return;
+          try {
+            renderer.upload(img);
+            paint();
+          } catch {
+            fallback(svg);
+          }
         };
         img.onerror = () => {
-          /* Couldn't load the drawing as an image: filter the element. */
-          ctx = null;
-          canvas.remove();
-          foliage.classList.add('dom');
-          foliage.innerHTML = svg;
-          wind();
+          if (version === leafVersion) fallback(svg);
         };
         img.src = `data:image/svg+xml,${encodeURIComponent(svg)}`;
       }
-
-      /* ---- wind --------------------------------------------------------
-         The gusts used to be SMIL animations on the filter, which re-ran
-         the turbulence every frame. A loop nudges the filter a few times
-         a second instead; the sway of the branches is a plain transform
-         and stays smooth. Frequencies are per rendered pixel, so they
-         scale with the detail. */
-      const turb = document.getElementById('windTurb');
-      const disp = document.getElementById('windDisp');
-      const GUST = {
-        dur: 16000,
-        times: [0, 0.33, 0.66, 1],
-        values: [
-          [0.004, 0.003],
-          [0.009, 0.008],
-          [0.007, 0.004],
-          [0.004, 0.003],
-        ],
-      };
-      const SWAY = { dur: 20000, times: [0, 0.25, 0.5, 0.75, 1], values: [40, 52, 70, 52, 40] };
-      const WIND_STEP = 1000 / 24;
-      const mix = (a, b, f) => a + (b - a) * f;
-      function keyed(track, now, pick) {
-        const t = (now % track.dur) / track.dur;
-        let i = 1;
-        while (track.times[i] < t) i++;
-        const f = (t - track.times[i - 1]) / (track.times[i] - track.times[i - 1]);
-        return pick(track.values[i - 1], track.values[i], f);
-      }
-
-      let windFrame = 0;
-      let windLast = -Infinity;
+      canvas.addEventListener('webglcontextlost', (event) => {
+        event.preventDefault();
+        ++leafVersion;
+        fallback(makeLeaves(cfg));
+      });
       function blow(now) {
-        windFrame = requestAnimationFrame(blow);
-        if (now - windLast < WIND_STEP) return;
+        if (windLast !== null) elapsed += Math.min((now - windLast) / 1000, 0.05);
         windLast = now;
-        const d = ctx ? cfg.detail : 1;
-        const [fx, fy] = keyed(GUST, now, (a, b, f) => [mix(a[0], b[0], f), mix(a[1], b[1], f)]);
-        turb.setAttribute('baseFrequency', `${(fx / d).toFixed(5)} ${(fy / d).toFixed(5)}`);
-        disp.setAttribute('scale', (keyed(SWAY, now, mix) * cfg.wind * d).toFixed(1));
         paint();
+        windFrame = requestAnimationFrame(blow);
       }
-
       function wind() {
         cancelAnimationFrame(windFrame);
         foliage.classList.toggle('still', isStill());
-        if (isStill()) {
-          paint();
-          return;
-        }
-        windLast = -Infinity;
-        blow(performance.now());
+        document.querySelector('.leaves').style.animationPlayState =
+          isStill() || document.hidden ? 'paused' : 'running';
+        windLast = null;
+        if (document.hidden) return;
+        paint();
+        if (!isStill()) windFrame = requestAnimationFrame(blow);
       }
       stillness.addEventListener('change', wind);
-
+      document.addEventListener('visibilitychange', wind);
       function apply(key, kind) {
         if (kind === 'leaves') {
           clearTimeout(growWait);
@@ -1161,7 +1090,7 @@
         }
         const row = document.createElement('label');
         /* Detail only means something when the foliage goes through a canvas. */
-        if (key === 'detail' && !ctx) row.hidden = true;
+        if (key === 'detail' && !renderer) row.hidden = true;
         const name = document.createElement('span');
         name.textContent = label;
 
